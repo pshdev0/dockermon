@@ -15,8 +15,9 @@ import javafx.scene.layout.AnchorPane;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
 import java.util.Comparator;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -36,7 +37,6 @@ public class MainController {
 
     ScheduledExecutorService executor;
     ObservableList<ContainerModel> containerList;
-    ExecutorService logExecutor = Executors.newCachedThreadPool();
 
     @FXML
     public void initialize() {
@@ -84,13 +84,15 @@ public class MainController {
 
             Platform.runLater(() -> {
                 var updated = false;
+
+                // disable old containers & set up for garbage collection
                 for (var container : containerList) {
 
                     var noneMatch = list.stream().noneMatch(x -> x.getId().equals(container.getId()));
                     container.setActive(!noneMatch);
 
                     if(noneMatch && container.logProcess != null) {
-                        if(container.logProcess.isAlive()) {
+                        if (container.logProcess.isAlive()) {
                             System.out.println("Deleting container logs process for: " + container.getName() + " " + container.getId());
                             container.logProcess.destroyForcibly();
                         }
@@ -102,6 +104,7 @@ public class MainController {
                     }
                 }
 
+                // add any new containers
                 for (var container : list) {
                     boolean onList = containerList.stream().anyMatch(x -> x.getId().equals(container.getId()));
 
@@ -112,6 +115,7 @@ public class MainController {
                     }
                 }
 
+                // update ui as necessary
                 if (updated) {
                     containerList.sort(Comparator
                             .comparing(ContainerModel::isActive, Comparator.reverseOrder())
@@ -156,39 +160,43 @@ public class MainController {
 
         var pb = new ProcessBuilder("docker", "logs", "-f", container.getId());
         try {
-            container.logProcess = pb.start();
+            // set up the pipe
+            container.in = new PipedInputStream();
+            container.out = new PipedOutputStream();
+            container.in.connect(container.out);
             container.textArea.clear();
-            logExecutor.submit(() -> captureLogs(container));
+            container.logProcess = pb.start(); // start the docker logs process
+
+            // start the docker log pipe
+            container.thread = new Thread(() -> {
+                StringBuilder logBuffer = new StringBuilder();
+                try (BufferedReader processReader = new BufferedReader(
+                        new InputStreamReader(container.logProcess.getInputStream()))) {
+                    String line;
+                    while ((line = processReader.readLine()) != null) {
+                        logBuffer.append(line).append("\n");
+
+                        if (logBuffer.length() > 1024) {
+                            String logsToAppend = logBuffer.toString();
+                            Platform.runLater(() -> container.textArea.appendText(logsToAppend));
+                            logBuffer.setLength(0); // Clear the buffer after flushing
+                        }
+                    }
+
+                    if (!logBuffer.isEmpty()) {
+                        String remainingLogs = logBuffer.toString();
+                        Platform.runLater(() -> container.textArea.appendText(remainingLogs));
+                    }
+                } catch (IOException e) {
+                    System.out.println("! Error writing process logs to output stream");
+                    e.printStackTrace();
+                }
+            });
+
+            container.thread.start();
         } catch (IOException e) {
             System.out.println("! Error creating log process");
-        }
-    }
-
-    private void captureLogs(ContainerModel container) {
-        // Use a StringBuilder to accumulate logs
-        StringBuilder logBuffer = new StringBuilder();
-
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(container.logProcess.getInputStream()))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                logBuffer.append(line).append("\n");
-
-                // Only update the TextArea periodically to avoid too many Platform.runLater() calls
-                if (logBuffer.length() > 4096) { // Adjust size based on performance
-                    final String logContent = logBuffer.toString();
-                    Platform.runLater(() -> container.textArea.appendText(logContent));
-                    logBuffer.setLength(0); // Clear the buffer after appending
-                }
-            }
-
-            // Append any remaining logs after exiting the loop
-            if (!logBuffer.isEmpty()) {
-                final String logContent = logBuffer.toString();
-                Platform.runLater(() -> container.textArea.appendText(logContent));
-                logBuffer.setLength(0); // Clear the buffer after appending
-            }
-        } catch (IOException e) {
-            System.out.println("! Error reading log output");
+            e.printStackTrace();
         }
     }
 }
