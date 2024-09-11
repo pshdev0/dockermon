@@ -177,15 +177,24 @@ public class MainController {
                         logBuffer.append(line).append("\n");
 
                         if (logBuffer.length() > 1024) {
+                            if(System.currentTimeMillis() - container.lastUpdateTimestamp > 5000) {
+                                logBuffer.append("\n");
+                            }
                             String logsToAppend = logBuffer.toString();
                             Platform.runLater(() -> container.textArea.appendText(logsToAppend));
                             logBuffer.setLength(0); // Clear the buffer after flushing
+                            container.lastUpdateTimestamp = System.currentTimeMillis();
                         }
-                    }
-
-                    if (!logBuffer.isEmpty()) {
-                        String remainingLogs = logBuffer.toString();
-                        Platform.runLater(() -> container.textArea.appendText(remainingLogs));
+                        else if(!processReader.ready()) {
+                            if (!logBuffer.isEmpty()) {
+                                if(System.currentTimeMillis() - container.lastUpdateTimestamp > 5000) {
+                                    logBuffer.append("\n");
+                                }
+                                String remainingLogs = logBuffer.toString();
+                                Platform.runLater(() -> container.textArea.appendText(remainingLogs));
+                            }
+                            container.lastUpdateTimestamp = System.currentTimeMillis();
+                        }
                     }
                 } catch (IOException e) {
                     System.out.println("! Error writing process logs to output stream");

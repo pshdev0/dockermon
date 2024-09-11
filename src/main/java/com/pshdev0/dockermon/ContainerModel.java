@@ -15,6 +15,7 @@ public class ContainerModel {
     PipedOutputStream out;
     PipedInputStream in;
     Thread thread;
+    long lastUpdateTimestamp = 0;
 
     ContainerModel(String id, String name) {
         this.id = id;
