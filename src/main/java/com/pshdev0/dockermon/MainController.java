@@ -182,7 +182,7 @@ public class MainController {
                             }
                             String logsToAppend = logBuffer.toString();
                             Platform.runLater(() -> container.textArea.appendText(logsToAppend));
-                            logBuffer.setLength(0); // Clear the buffer after flushing
+                            logBuffer.setLength(0); // clear the buffer after flushing
                             container.lastUpdateTimestamp = System.currentTimeMillis();
                         }
                         else if(!processReader.ready()) {
@@ -192,6 +192,7 @@ public class MainController {
                                 }
                                 String remainingLogs = logBuffer.toString();
                                 Platform.runLater(() -> container.textArea.appendText(remainingLogs));
+                                logBuffer.setLength(0); // clear the buffer after flushing
                             }
                             container.lastUpdateTimestamp = System.currentTimeMillis();
                         }
