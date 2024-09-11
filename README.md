@@ -6,13 +6,15 @@ Since the `org.openjfx` repository was not available in the Artifactory, you nee
 * Unzip and add the `lib` folder to IntelliJ "Project Structure..." Libraries
 * In "Edit Configurations" you should have an "Application" where you need to set the "Program arguments" text field to `--module-path /path/to/your/javafx-sdk/lib --add-modules=javafx.controls,javafx.fxml` (change `/path/to/your/javafx-sdk/lib` as appropriate). You'll also need to specify the Main class to run.
 * You should then be able to run the JavaFX application.
-# dockermon
+# How to Run
+* In a terminal run `docker_chs up`.
+* Run Dockermon, and you should see it pick up all your services.
+# Features
 * Active containers appear in green, old containers in red
 * Click "Clean" button to remove old (red) containers
 * Click "Clear log" button to clear the selected log
+* Click "Reload" to reload a selected service. Eventually the reloaded service will be picked up, just wait a while like you would if running `docker_chs reload` in the terminal.
 * Any new logs entries appearing 5 seconds after any earlier log entries will be separated by a space for readability.
 # TODO
 * Colorise log output
 * Add search function
-* Add a "Reload" button to issue a `docker_chs reload [repo]` command
-* Add "Up" and "Down" buttons for `docker_chs up` and `docker_chs down`
