@@ -11,3 +11,6 @@ Since the `org.openjfx` repository was not available in the Artifactory, you nee
 * Click "Clean" button to remove old (red) containers
 * Click "Clear log" button to clear the selected log
 * Any new logs entries appearing 5 seconds after any earlier log entries will be separated by a space for readability.
+# TODO
+* Colorise log output
+* Add search function
