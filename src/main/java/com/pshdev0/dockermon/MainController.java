@@ -6,11 +6,16 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
+import javafx.scene.text.Font;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -31,10 +36,6 @@ public class MainController {
     @FXML
     Button buttonReload;
     @FXML
-    Button buttonUp;
-    @FXML
-    Button buttonDown;
-    @FXML
     TableView<ContainerModel> tableContainers;
     @FXML
     TableColumn<ContainerModel, ContainerModel> tableCol;
@@ -50,6 +51,14 @@ public class MainController {
         containerList = FXCollections.observableArrayList();
         tableContainers.setItems(containerList);
 
+        tableContainers.skinProperty().addListener((a, b, c) -> {
+            Pane header = (Pane)tableContainers.lookup("TableHeaderRow");
+            header.setVisible(false);
+            header.setMinHeight(0);
+            header.setMaxHeight(0);
+            header.setPrefHeight(0);
+        });
+
         tableCol.setCellValueFactory(row -> new SimpleObjectProperty<>(row.getValue()));
         tableCol.setCellFactory(column -> new TableCell<>() {
             @Override
@@ -57,15 +66,46 @@ public class MainController {
                 super.updateItem(item, empty);
                 if (empty || item == null) {
                     setText(null);
-                } else {
-                    setText(item.getCellName());
+                }
+                else {
+                    HBox hbox = new HBox();
+                    hbox.setMaxHeight(USE_COMPUTED_SIZE);
 
-                    if(item.active) {
-                        setStyle("-fx-text-fill: green;");
+                    if(item.reloading && item.active) {
+                        var indicator = new ProgressIndicator();
+                        indicator.setProgress(ProgressIndicator.INDETERMINATE_PROGRESS);
+                        indicator.setMinWidth(30);
+                        indicator.setMaxWidth(30);
+                        indicator.setMaxHeight(20);
+                        hbox.getChildren().add(indicator);
+                        hbox.getChildren().add(new Label(" "));
+                    }
+                    else if(!item.active) {
+                        Label prefix = new Label("\uD83D\uDED1");
+                        prefix.setOpacity(0.75);
+                        prefix.setFont(Font.font(18));
+                        prefix.setMinWidth(30);
+                        hbox.getChildren().add(prefix);
                     }
                     else {
-                        setStyle("-fx-text-fill: red;");
+                        Label prefix = new Label("✅");
+                        prefix.setOpacity(0.75);
+                        prefix.setFont(Font.font(18));
+                        prefix.setMinWidth(30);
+                        hbox.getChildren().add(prefix);
                     }
+
+                    Label label = new Label(item.getName());
+                    if(!item.active) {
+                        label.setStyle("-fx-text-fill: red;"); // label.setStyle("-fx-text-fill: green;");
+                    }
+                    else if(item.reloading) {
+                        label.setStyle("-fx-text-fill: gray;");
+                    }
+                    label.setFont(Font.font(18));
+
+                    hbox.getChildren().add(label);
+                    setGraphic(hbox);
                 }
             }
         });
@@ -149,6 +189,8 @@ public class MainController {
 
             if (selectedContainer != null) {
                 System.out.println("Reloading: " + selectedContainer.getName());
+                selectedContainer.reloading = true;
+                tableContainers.refresh();
                 bashSourceAndRun("docker_chs reload " + selectedContainer.getName());
             }
         });
@@ -167,7 +209,7 @@ public class MainController {
         });
 
         tableCol.setSortable(false);
-        tableCol.setMinWidth(350);
+        tableCol.prefWidthProperty().bind(tableContainers.widthProperty().subtract(18));
     }
 
     private void bashSourceAndRun(String command) {

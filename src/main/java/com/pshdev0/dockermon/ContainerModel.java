@@ -10,6 +10,7 @@ public class ContainerModel {
     String id;
     String name;
     boolean active = true;
+    boolean reloading = false;
     Process logProcess;
     TextArea textArea;
     PipedOutputStream out;
