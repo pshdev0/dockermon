@@ -4,6 +4,6 @@ Since the `org.openjfx` repository was not available in the Artifactory, you nee
 
 * JavaFX SDK libraries available here: https://jdk.java.net/javafx22/
 * Unzip and add the `lib` folder to IntelliJ "Project Structure..." Libraries
-* In "Edit Configurations" you should have an "Application" where you need to set the "Program arguments" text field to `--module-path /path/to/your/javafx-sdk/lib --add-modules=javafx.controls,javafx.fxml`
+* In "Edit Configurations" you should have an "Application" where you need to set the "Program arguments" text field to `--module-path /path/to/your/javafx-sdk/lib --add-modules=javafx.controls,javafx.fxml`. You'll also need to specify the Main class to run.
 * You should then be able to run the JavaFX application.
 # dockermon
