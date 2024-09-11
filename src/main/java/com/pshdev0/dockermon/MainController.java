@@ -89,7 +89,12 @@ public class MainController {
                     }
                     else {
                         Label prefix = new Label("✅");
-                        prefix.setOpacity(0.75);
+                        if(System.currentTimeMillis() - item.lastUpdateTimestamp > 3000) {
+                            prefix.setOpacity(0.5);
+                        }
+                        else {
+                            prefix.setOpacity(1);
+                        }
                         prefix.setFont(Font.font(18));
                         prefix.setMinWidth(30);
                         hbox.getChildren().add(prefix);
@@ -166,8 +171,9 @@ public class MainController {
                     containerList.sort(Comparator
                             .comparing(ContainerModel::isActive, Comparator.reverseOrder())
                             .thenComparing(ContainerModel::getName));
-                    tableContainers.refresh();
                 }
+
+                tableContainers.refresh();
             });
         }, 0, 1000, TimeUnit.MILLISECONDS);
 
