@@ -169,6 +169,7 @@ public class MainController {
 
             // start the docker log pipe
             container.thread = new Thread(() -> {
+                String regex = "\\u001B\\[[;\\d]*m"; // remove color codes until I implement them
                 StringBuilder logBuffer = new StringBuilder();
                 try (BufferedReader processReader = new BufferedReader(
                         new InputStreamReader(container.logProcess.getInputStream()))) {
@@ -180,7 +181,7 @@ public class MainController {
                             if(System.currentTimeMillis() - container.lastUpdateTimestamp > 5000) {
                                 logBuffer.append("\n");
                             }
-                            String logsToAppend = logBuffer.toString();
+                            String logsToAppend = logBuffer.toString().replaceAll(regex, "");
                             Platform.runLater(() -> container.textArea.appendText(logsToAppend));
                             logBuffer.setLength(0); // clear the buffer after flushing
                             container.lastUpdateTimestamp = System.currentTimeMillis();
@@ -190,7 +191,7 @@ public class MainController {
                                 if(System.currentTimeMillis() - container.lastUpdateTimestamp > 5000) {
                                     logBuffer.append("\n");
                                 }
-                                String remainingLogs = logBuffer.toString();
+                                String remainingLogs = logBuffer.toString().replaceAll(regex, "");
                                 Platform.runLater(() -> container.textArea.appendText(remainingLogs));
                                 logBuffer.setLength(0); // clear the buffer after flushing
                             }
