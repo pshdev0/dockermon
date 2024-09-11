@@ -29,6 +29,12 @@ public class MainController {
     @FXML
     Button buttonRemoveOld;
     @FXML
+    Button buttonReload;
+    @FXML
+    Button buttonUp;
+    @FXML
+    Button buttonDown;
+    @FXML
     TableView<ContainerModel> tableContainers;
     @FXML
     TableColumn<ContainerModel, ContainerModel> tableCol;
