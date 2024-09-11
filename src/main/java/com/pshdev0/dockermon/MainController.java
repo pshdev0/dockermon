@@ -144,6 +144,15 @@ public class MainController {
             }
         }));
 
+        buttonReload.setOnAction(event -> {
+            var selectedContainer = tableContainers.getSelectionModel().getSelectedItem();
+
+            if (selectedContainer != null) {
+                System.out.println("Reloading: " + selectedContainer.getName());
+                bashSourceAndRun("docker_chs reload " + selectedContainer.getName());
+            }
+        });
+
         tableContainers.setOnMouseClicked(event -> {
             var selectedContainer = tableContainers.getSelectionModel().getSelectedItem();
 
@@ -159,6 +168,20 @@ public class MainController {
 
         tableCol.setSortable(false);
         tableCol.setMinWidth(350);
+    }
+
+    private void bashSourceAndRun(String command) {
+        new Thread(() -> {
+            var pb = new ProcessBuilder("bash", "-c", "source ~/.bash_profile && " + command);
+            try {
+                Process process = pb.start();
+                int exitCode = process.waitFor();  // wait for the process to finish
+
+                Platform.runLater(() -> System.out.println("Process finished with exit code: " + exitCode));
+            } catch (IOException | InterruptedException e) {
+                Platform.runLater(() -> System.out.println("Error reloading: " + e.getMessage()));
+            }
+        }).start();
     }
 
     private void createLogProcessForContainer(ContainerModel container) {

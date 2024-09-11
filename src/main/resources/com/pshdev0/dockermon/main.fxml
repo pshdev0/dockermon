@@ -99,9 +99,9 @@
                      </padding>
                      <ButtonBar nodeOrientation="RIGHT_TO_LEFT" prefHeight="40.0" prefWidth="200.0">
                         <buttons>
-                            <Button fx:id="buttonReload" disable="true" mnemonicParsing="false" text="🔄 Reload"/>
-                            <Button fx:id="buttonDown" disable="true" mnemonicParsing="false" text="🔻 Down"/>
-                            <Button fx:id="buttonUp" disable="true" mnemonicParsing="false" text="🔺 Up"/>
+                            <Button fx:id="buttonReload" mnemonicParsing="false" text="🔄 Reload"/>
+<!--                            <Button fx:id="buttonDown" mnemonicParsing="false" text="🔻 Down"/>-->
+<!--                            <Button fx:id="buttonUp" mnemonicParsing="false" text="🔺 Up"/>-->
                             <Button fx:id="buttonClear" mnemonicParsing="false" text="🪵 Clear log"/>
                             <Button fx:id="buttonRemoveOld" mnemonicParsing="false" text="🧽 Clean"/>
                         </buttons>
