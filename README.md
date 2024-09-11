@@ -15,4 +15,4 @@ Since the `org.openjfx` repository was not available in the Artifactory, you nee
 * Colorise log output
 * Add search function
 * Add a "Reload" button to issue a `docker_chs reload [repo]` command
-
+* Add "Up" and "Down" buttons for `docker_chs up` and `docker_chs down`
