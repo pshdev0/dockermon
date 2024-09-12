@@ -18,3 +18,4 @@ Since the `org.openjfx` repository was not available in the Artifactory, you nee
 # TODO
 * Colorise log output
 * Add search function
+* AWS key checking to see if they've cleared, and an AWS button to refresh the keys
