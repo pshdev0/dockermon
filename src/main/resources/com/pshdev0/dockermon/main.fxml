@@ -99,9 +99,11 @@
                      </padding>
                      <ButtonBar nodeOrientation="RIGHT_TO_LEFT" prefHeight="40.0" prefWidth="200.0">
                         <buttons>
-                            <Button fx:id="buttonReload" mnemonicParsing="false" text="🔄 Reload"/>
+                            <Button fx:id="buttonAws" disable="true" mnemonicParsing="false" text="🟠 Refresh AWS Keys"/>
+                            <Button fx:id="buttonRefresh" disable="true" mnemonicParsing="false" text="🥾 Reboot Dockermon"/>
+                            <Button fx:id="buttonReload" mnemonicParsing="false" text="🔄 Reload Service"/>
                             <Button fx:id="buttonClear" mnemonicParsing="false" text="🪵 Clear log"/>
-                            <Button fx:id="buttonRemoveOld" mnemonicParsing="false" text="🧽 Clean"/>
+                            <Button fx:id="buttonRemoveOld" mnemonicParsing="false" text="🧽 Remove Old Containers"/>
                         </buttons>
                      </ButtonBar>
                      <Label text="Containers"/>
