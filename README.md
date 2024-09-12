@@ -17,6 +17,7 @@ Since the `org.openjfx` repository was not available in the Artifactory, you nee
 * Any new logs entries appearing 5 seconds after any earlier log entries will be separated by a space for readability.
 * Any green icons ✅ will light up for 3 seconds when the corresponding service has new logs.
 # TODO
+* Add a Refresh button to clear all processes and refresh.
+* Add AWS key checking to see if they've cleared, and add an AWS button to refresh the keys
 * Colorise log output
 * Add search function
-* Add AWS key checking to see if they've cleared, and add an AWS button to refresh the keys
