@@ -15,6 +15,7 @@ import javafx.scene.control.TableView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 
 import java.io.BufferedReader;
@@ -70,6 +71,8 @@ public class MainController {
                 else {
                     HBox hbox = new HBox();
                     hbox.setMaxHeight(USE_COMPUTED_SIZE);
+                    Label containerIdLabel = new Label(item.getId());
+                    containerIdLabel.setFont(Font.font(10));
 
                     if(item.reloading && item.active) {
                         var indicator = new ProgressIndicator();
@@ -100,7 +103,7 @@ public class MainController {
                         hbox.getChildren().add(prefix);
                     }
 
-                    Label label = new Label(item.getName());
+                    Label label = new Label(item.getCellName());
                     if(!item.active) {
                         label.setStyle("-fx-text-fill: red;"); // label.setStyle("-fx-text-fill: green;");
                     }
@@ -109,7 +112,9 @@ public class MainController {
                     }
                     label.setFont(Font.font(18));
 
-                    hbox.getChildren().add(label);
+                    VBox vbox = new VBox();
+                    vbox.getChildren().addAll(label, containerIdLabel);
+                    hbox.getChildren().add(vbox);
                     setGraphic(hbox);
                 }
             }
@@ -144,7 +149,7 @@ public class MainController {
 
                     if(noneMatch && container.logProcess != null) {
                         if (container.logProcess.isAlive()) {
-                            System.out.println("Deleting container logs process for: " + container.getName() + " " + container.getId());
+                            System.out.println("Deleting container logs process for: " + container.getCellName() + " " + container.getId());
                             container.logProcess.destroyForcibly();
                         }
                         container.logProcess = null;
@@ -170,7 +175,7 @@ public class MainController {
                 if (updated) {
                     containerList.sort(Comparator
                             .comparing(ContainerModel::isActive, Comparator.reverseOrder())
-                            .thenComparing(ContainerModel::getName));
+                            .thenComparing(ContainerModel::getCellName));
                 }
 
                 tableContainers.refresh();
@@ -194,10 +199,10 @@ public class MainController {
             var selectedContainer = tableContainers.getSelectionModel().getSelectedItem();
 
             if (selectedContainer != null) {
-                System.out.println("Reloading: " + selectedContainer.getName());
+                System.out.println("Reloading: " + selectedContainer.getCellName());
                 selectedContainer.reloading = true;
                 tableContainers.refresh();
-                bashSourceAndRun("docker_chs reload " + selectedContainer.getName());
+                bashSourceAndRun("docker_chs reload " + selectedContainer.getCellName());
             }
         });
 
@@ -233,7 +238,7 @@ public class MainController {
     }
 
     private void createLogProcessForContainer(ContainerModel container) {
-        System.out.println("creating process for: " + container.getName() + " " + container.getId());
+        System.out.println("creating process for: " + container.getCellName() + " " + container.getId());
 
         var pb = new ProcessBuilder("docker", "logs", "-f", container.getId());
         try {

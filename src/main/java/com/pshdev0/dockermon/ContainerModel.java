@@ -29,12 +29,7 @@ public class ContainerModel {
     }
 
     public String getCellName() {
-        if(active) {
-            return name + "\n" + id;
-        }
-        else {
-            return name + " (no longer running)\n" + id;
-        }
+        return name;
     }
 
     public String getId() {
