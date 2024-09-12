@@ -15,7 +15,7 @@ Since the `org.openjfx` repository was not available in the Artifactory, you nee
 * Click "Clear log" button to clear the selected log
 * Click "Reload" to reload a selected service. Eventually the reloaded service will be picked up, just wait a while like you would if running `docker_chs reload` in the terminal.
 * Any new logs entries appearing 5 seconds after any earlier log entries will be separated by a space for readability.
-* The green icon ✅ will light up for 3 seconds when a service has new logs.
+* Any green icons ✅ will light up for 3 seconds when the corresponding service has new logs.
 # TODO
 * Colorise log output
 * Add search function
