@@ -17,6 +17,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
+import org.fxmisc.richtext.InlineCssTextArea;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -27,6 +28,8 @@ import java.util.Comparator;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class MainController {
 
@@ -45,6 +48,8 @@ public class MainController {
 
     ScheduledExecutorService executor;
     ObservableList<ContainerModel> containerList;
+
+    private static final Pattern ANSI_PATTERN = Pattern.compile("\u001B\\[(\\d+)?m");
 
     @FXML
     public void initialize() {
@@ -191,7 +196,8 @@ public class MainController {
             var selectedItem = tableContainers.getSelectionModel().getSelectedItem();
 
             if(selectedItem != null) {
-                selectedItem.textArea.clear();
+//                selectedItem.textArea.clear();
+                selectedItem.richTextArea.clear();
             }
         }));
 
@@ -211,11 +217,11 @@ public class MainController {
 
             if(selectedContainer != null) {
                 logAnchor.getChildren().clear();
-                logAnchor.getChildren().add(selectedContainer.textArea);
-                AnchorPane.setLeftAnchor(selectedContainer.textArea, 0.0);
-                AnchorPane.setRightAnchor(selectedContainer.textArea, 0.0);
-                AnchorPane.setTopAnchor(selectedContainer.textArea, 0.0);
-                AnchorPane.setBottomAnchor(selectedContainer.textArea, 0.0);
+                logAnchor.getChildren().add(selectedContainer.virtualRichTextArea);
+                AnchorPane.setLeftAnchor(selectedContainer.virtualRichTextArea, 0.0);
+                AnchorPane.setRightAnchor(selectedContainer.virtualRichTextArea, 0.0);
+                AnchorPane.setTopAnchor(selectedContainer.virtualRichTextArea, 0.0);
+                AnchorPane.setBottomAnchor(selectedContainer.virtualRichTextArea, 0.0);
             }
         });
 
@@ -237,6 +243,54 @@ public class MainController {
         }).start();
     }
 
+    private void parseAnsiCodesAndApplyStyles(String line, InlineCssTextArea area) {
+        Matcher matcher = ANSI_PATTERN.matcher(line);
+        int lastIndex = 0;
+        String currentStyle = "";
+
+        while (matcher.find()) {
+            String ansiCode = matcher.group(1);
+
+            if (matcher.start() > lastIndex) {
+                area.appendText(line.substring(lastIndex, matcher.start()));
+                if (!currentStyle.isEmpty()) {
+                    area.setStyle(area.getLength() - (matcher.start() - lastIndex), area.getLength(), currentStyle);
+                }
+            }
+
+            currentStyle = getStyleFromAnsiCode(ansiCode);
+            lastIndex = matcher.end();
+        }
+
+        if (lastIndex < line.length()) {
+            area.appendText(line.substring(lastIndex));
+            if (!currentStyle.isEmpty()) {
+                area.setStyle(area.getLength() - (line.length() - lastIndex), area.getLength(), currentStyle);
+            }
+        }
+    }
+
+    private String getStyleFromAnsiCode(String ansiCode) {
+        return switch (ansiCode) {
+            case "30" -> "-fx-fill: black;";         // black
+            case "31" -> "-fx-fill: red;";           // red
+            case "32" -> "-fx-fill: lightgreen;";    // green
+            case "33" -> "-fx-fill: yellow;";        // yellow
+            case "34" -> "-fx-fill: blue;";          // blue
+            case "35" -> "-fx-fill: magenta;";       // magenta
+            case "36" -> "-fx-fill: cyan;";          // cyan
+            case "90" -> "-fx-fill: gray;";          // bright black (gray)
+            case "91" -> "-fx-fill: lightcoral;";    // bright red
+            case "92" -> "-fx-fill: lightgreen;";    // bright green
+            case "93" -> "-fx-fill: lightyellow;";   // bright yellow
+            case "94" -> "-fx-fill: lightskyblue;";  // bright blue
+            case "95" -> "-fx-fill: lightpink;";     // bright magenta
+            case "96" -> "-fx-fill: lightcyan;";     // bright cyan
+            case "97" -> "-fx-fill: white;";         // bright white (default)
+            default -> "-fx-fill: white;";
+        };
+    }
+
     private void createLogProcessForContainer(ContainerModel container) {
         System.out.println("creating process for: " + container.getCellName() + " " + container.getId());
 
@@ -246,12 +300,11 @@ public class MainController {
             container.in = new PipedInputStream();
             container.out = new PipedOutputStream();
             container.in.connect(container.out);
-            container.textArea.clear();
+            container.richTextArea.clear();
             container.logProcess = pb.start(); // start the docker logs process
 
             // start the docker log pipe
             container.thread = new Thread(() -> {
-                String regex = "\\u001B\\[[;\\d]*m"; // remove color codes until I implement them
                 StringBuilder logBuffer = new StringBuilder();
                 try (BufferedReader processReader = new BufferedReader(
                         new InputStreamReader(container.logProcess.getInputStream()))) {
@@ -259,23 +312,23 @@ public class MainController {
                     while ((line = processReader.readLine()) != null) {
                         logBuffer.append(line).append("\n");
 
-                        if (logBuffer.length() > 1024) {
+                        if (logBuffer.length() > 1024*16) {
                             if(System.currentTimeMillis() - container.lastUpdateTimestamp > 5000) {
-                                logBuffer.append("\n");
+                                logBuffer.append("\uD83C\uDF0A\n");
                             }
-                            String logsToAppend = logBuffer.toString().replaceAll(regex, "");
-                            Platform.runLater(() -> container.textArea.appendText(logsToAppend));
-                            logBuffer.setLength(0); // clear the buffer after flushing
+                            String logsToAppend = logBuffer.toString();
+                            Platform.runLater(() -> parseAnsiCodesAndApplyStyles(logsToAppend, container.richTextArea));
+                            logBuffer.setLength(0);
                             container.lastUpdateTimestamp = System.currentTimeMillis();
                         }
                         else if(!processReader.ready()) {
                             if (!logBuffer.isEmpty()) {
                                 if(System.currentTimeMillis() - container.lastUpdateTimestamp > 5000) {
-                                    logBuffer.append("\n");
+                                    logBuffer.append("\uD83C\uDF0A\n");
                                 }
-                                String remainingLogs = logBuffer.toString().replaceAll(regex, "");
-                                Platform.runLater(() -> container.textArea.appendText(remainingLogs));
-                                logBuffer.setLength(0); // clear the buffer after flushing
+                                String remainingLogs = logBuffer.toString();
+                                Platform.runLater(() -> parseAnsiCodesAndApplyStyles(remainingLogs, container.richTextArea));
+                                logBuffer.setLength(0);
                             }
                             container.lastUpdateTimestamp = System.currentTimeMillis();
                         }

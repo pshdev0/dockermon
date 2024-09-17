@@ -5,9 +5,12 @@ The dependencies aren't in the artifactory so you'll need to install them manual
 * In "Edit Configurations" you should have an "Application" where you need to set the "Program arguments" text field to `--module-path /path/to/your/javafx-sdk/lib --add-modules=javafx.controls,javafx.fxml` (change `/path/to/your/javafx-sdk/lib` as appropriate). You'll also need to specify the Main class to run.
 * You should then be able to run the JavaFX application.
 
-
-* Download RichTextFX `.jar` from https://github.com/FXMisc/RichTextFX?tab=readme-ov-file
-* Add the `.jar` to the IntelliJ "Project Structure..." Libraries.
+For the RichTextFX console you'll need to download the following `.jar`s from Maven Central and add to the IntelliJ "Project Structure..." Libraries/Modules.
+* `richtextfx-0.11.3.jar` - https://mvnrepository.com/artifact/org.fxmisc.richtext/richtextfx
+* `flowless-0.7.3.jar` - https://mvnrepository.com/artifact/org.fxmisc.flowless/flowless
+* `reactfx-2.0-M5.jar` - https://mvnrepository.com/artifact/org.reactfx/reactfx
+* `undofx-2.1.0.jar` - https://mvnrepository.com/artifact/org.fxmisc.undo/undofx
+* `wellbehavedfx-0.3.3.jar` - https://mvnrepository.com/artifact/org.fxmisc.wellbehaved/wellbehavedfx
 # How to Run
 * In a terminal run `docker_chs up`.
 * Run Dockermon, and you should see it pick up all your services.

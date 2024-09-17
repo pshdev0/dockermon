@@ -3,6 +3,8 @@ module com.pshdev0.dockermon {
     requires javafx.fxml;
     requires javafx.web;
     requires java.desktop;
+    requires org.fxmisc.richtext;
+    requires org.fxmisc.flowless;
 
     opens com.pshdev0.dockermon to javafx.fxml;
     exports com.pshdev0.dockermon;

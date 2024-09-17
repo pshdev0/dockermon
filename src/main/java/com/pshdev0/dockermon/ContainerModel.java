@@ -1,7 +1,7 @@
 package com.pshdev0.dockermon;
 
-import javafx.scene.control.TextArea;
-import javafx.scene.text.Font;
+import org.fxmisc.flowless.VirtualizedScrollPane;
+import org.fxmisc.richtext.InlineCssTextArea;
 
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
@@ -12,7 +12,8 @@ public class ContainerModel {
     boolean active = true;
     boolean reloading = false;
     Process logProcess;
-    TextArea textArea;
+    InlineCssTextArea richTextArea;
+    VirtualizedScrollPane<InlineCssTextArea> virtualRichTextArea;
     PipedOutputStream out;
     PipedInputStream in;
     Thread thread;
@@ -21,11 +22,15 @@ public class ContainerModel {
     ContainerModel(String id, String name) {
         this.id = id;
         this.name = name;
-        this.textArea = new TextArea();
-        this.textArea.setFont(Font.font("Courier New"));
-        this.textArea.setStyle("-fx-control-inner-background: black; -fx-text-fill: #FFFFFF;");
-        this.textArea.setEditable(false);
-        this.textArea.setWrapText(true);
+        this.richTextArea = new InlineCssTextArea();
+        this.virtualRichTextArea = new VirtualizedScrollPane<>(richTextArea);
+        this.richTextArea.setStyle(
+                "-fx-background-color: black;" +
+                "-fx-font-family: 'Courier New';" +
+                "-fx-font-size: 14px;"
+        );
+        this.richTextArea.setEditable(false);
+        this.richTextArea.setWrapText(true);
     }
 
     public String getCellName() {
