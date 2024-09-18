@@ -21,6 +21,7 @@ For the RichTextFX console you'll need to download the following `.jar`s from Ma
 * Click "Reload" to reload a selected service. Eventually the reloaded service will be picked up, just wait a while like you would if running `docker_chs reload` in the terminal.
 * Any new logs entries appearing 5 seconds after any earlier log entries will be separated by a space for readability.
 * Any green icons ✅ will light up for 3 seconds when the corresponding service has new logs.
+* Select log text and CTRL+C to copy log text
 # TODO
 * Colorise log output
 * Add a Refresh button to clear all processes and refresh.

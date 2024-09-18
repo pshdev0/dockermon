@@ -22,8 +22,6 @@ import org.fxmisc.richtext.InlineCssTextArea;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
 import java.util.Comparator;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -196,7 +194,6 @@ public class MainController {
             var selectedItem = tableContainers.getSelectionModel().getSelectedItem();
 
             if(selectedItem != null) {
-//                selectedItem.textArea.clear();
                 selectedItem.richTextArea.clear();
             }
         }));
@@ -246,7 +243,7 @@ public class MainController {
     private void parseAnsiCodesAndApplyStyles(String line, InlineCssTextArea area) {
         Matcher matcher = ANSI_PATTERN.matcher(line);
         int lastIndex = 0;
-        String currentStyle = "";
+        String currentStyle = "-fx-fill: white;";
 
         while (matcher.find()) {
             String ansiCode = matcher.group(1);
@@ -296,10 +293,6 @@ public class MainController {
 
         var pb = new ProcessBuilder("docker", "logs", "-f", container.getId());
         try {
-            // set up the pipe
-            container.in = new PipedInputStream();
-            container.out = new PipedOutputStream();
-            container.in.connect(container.out);
             container.richTextArea.clear();
             container.logProcess = pb.start(); // start the docker logs process
 

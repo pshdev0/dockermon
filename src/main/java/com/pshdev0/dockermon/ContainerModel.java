@@ -3,9 +3,6 @@ package com.pshdev0.dockermon;
 import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.InlineCssTextArea;
 
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
-
 public class ContainerModel {
     String id;
     String name;
@@ -14,8 +11,6 @@ public class ContainerModel {
     Process logProcess;
     InlineCssTextArea richTextArea;
     VirtualizedScrollPane<InlineCssTextArea> virtualRichTextArea;
-    PipedOutputStream out;
-    PipedInputStream in;
     Thread thread;
     long lastUpdateTimestamp = 0;
 
