@@ -19,10 +19,10 @@ public class ContainerModel {
         this.name = name;
         this.richTextArea = new InlineCssTextArea();
         this.virtualRichTextArea = new VirtualizedScrollPane<>(richTextArea);
-        this.richTextArea.setStyle(
-                "-fx-background-color: black;" +
-                "-fx-font-family: 'Courier New';" +
-                "-fx-font-size: 14px;"
+        this.richTextArea.setStyle("""
+                -fx-background-color: black;
+                -fx-font-family: 'Courier New';
+                -fx-font-size: 14px;"""
         );
         this.richTextArea.setEditable(false);
         this.richTextArea.setWrapText(true);
