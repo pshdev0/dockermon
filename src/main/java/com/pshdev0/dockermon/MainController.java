@@ -277,20 +277,20 @@ public class MainController {
 
     private String getStyleFromAnsiCode(String ansiCode) {
         return switch (ansiCode) {
-            case "30" -> "-fx-fill: black;";         // black
-            case "31" -> "-fx-fill: red;";           // red
-            case "32" -> "-fx-fill: lightgreen;";    // green
-            case "33" -> "-fx-fill: yellow;";        // yellow
-            case "34" -> "-fx-fill: blue;";          // blue
-            case "35" -> "-fx-fill: magenta;";       // magenta
-            case "36" -> "-fx-fill: cyan;";          // cyan
-            case "90" -> "-fx-fill: gray;";          // bright black (gray)
-            case "91" -> "-fx-fill: lightcoral;";    // bright red
-            case "92" -> "-fx-fill: lightgreen;";    // bright green
-            case "93" -> "-fx-fill: lightyellow;";   // bright yellow
-            case "94" -> "-fx-fill: lightskyblue;";  // bright blue
-            case "95" -> "-fx-fill: lightpink;";     // bright magenta
-            case "96" -> "-fx-fill: lightcyan;";     // bright cyan
+            case "30" -> "-fx-fill: black; -fx-font-weight: bold;";         // black
+            case "31" -> "-fx-fill: red; -fx-font-weight: bold;";           // red
+            case "32" -> "-fx-fill: lightgreen; -fx-font-weight: bold;";    // green
+            case "33" -> "-fx-fill: yellow; -fx-font-weight: bold;";        // yellow
+            case "34" -> "-fx-fill: lightblue; -fx-font-weight: bold;";          // blue
+            case "35" -> "-fx-fill: magenta; -fx-font-weight: bold;";       // magenta
+            case "36" -> "-fx-fill: cyan; -fx-font-weight: bold;";          // cyan
+            case "90" -> "-fx-fill: gray; -fx-font-weight: bold;";          // bright black (gray)
+            case "91" -> "-fx-fill: lightcoral; -fx-font-weight: bold;";    // bright red
+            case "92" -> "-fx-fill: lightgreen; -fx-font-weight: bold;";    // bright green
+            case "93" -> "-fx-fill: lightyellow; -fx-font-weight: bold;";   // bright yellow
+            case "94" -> "-fx-fill: lightskyblue; -fx-font-weight: bold;";  // bright blue
+            case "95" -> "-fx-fill: lightpink; -fx-font-weight: bold;";     // bright magenta
+            case "96" -> "-fx-fill: lightcyan; -fx-font-weight: bold;";     // bright cyan
             case "97" -> "-fx-fill: white;";         // bright white (default)
             default -> "-fx-fill: white;";
         };
