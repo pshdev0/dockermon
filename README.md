@@ -28,3 +28,5 @@ For the RichTextFX console you'll need to download the following `.jar`s from Ma
 * Add AWS key checking to see if they've cleared, and add an AWS button to refresh the keys
 * Add VPN connection status
 * Add search function
+* Add Dockermon refresh button to force a logs flush
+

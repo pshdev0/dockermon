@@ -245,6 +245,9 @@ public class MainController {
         int lastIndex = 0;
         String currentStyle = "-fx-fill: white;";
 
+        var scrollY = area.getEstimatedScrollY();
+        var maxScrollY = area.getTotalHeightEstimate() - area.getHeight();
+
         while (matcher.find()) {
             String ansiCode = matcher.group(1);
 
@@ -264,6 +267,11 @@ public class MainController {
             if (!currentStyle.isEmpty()) {
                 area.setStyle(area.getLength() - (line.length() - lastIndex), area.getLength(), currentStyle);
             }
+        }
+
+        // if the scroll bar is at the bottom, scroll to the end to view the new material
+        if(scrollY >= maxScrollY - 10) {
+            area.requestFollowCaret();
         }
     }
 
@@ -310,7 +318,9 @@ public class MainController {
                                 logBuffer.append("\uD83C\uDF0A\n");
                             }
                             String logsToAppend = logBuffer.toString();
-                            Platform.runLater(() -> parseAnsiCodesAndApplyStyles(logsToAppend, container.richTextArea));
+                            Platform.runLater(() -> {
+                                parseAnsiCodesAndApplyStyles(logsToAppend, container.richTextArea);
+                            });
                             logBuffer.setLength(0);
                             container.lastUpdateTimestamp = System.currentTimeMillis();
                         }
