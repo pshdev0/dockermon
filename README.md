@@ -23,7 +23,6 @@ For the RichTextFX console you'll need to download the following `.jar`s from Ma
 * Any green icons ✅ will light up for 3 seconds when the corresponding service has new logs.
 * Select log text and CTRL+C to copy log text
 # TODO
-* Colorise log output
 * Add a Refresh button to clear all processes and refresh.
 * Add AWS key checking to see if they've cleared, and add an AWS button to refresh the keys
 * Add VPN connection status
