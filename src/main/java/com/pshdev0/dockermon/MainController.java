@@ -8,6 +8,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressIndicator;
+import javafx.scene.control.SplitPane;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
@@ -38,11 +39,20 @@ public class MainController {
     @FXML
     Button buttonReload;
     @FXML
+    Button buttonSplitView;
+    @FXML
     TableView<ContainerModel> tableContainers;
     @FXML
     TableColumn<ContainerModel, ContainerModel> tableCol;
     @FXML
-    AnchorPane logAnchor;
+    AnchorPane logAnchor1;
+    @FXML
+    AnchorPane logAnchor2;
+    @FXML
+    SplitPane splitPane;
+
+    ContainerModel firstContainer = null;
+    ContainerModel secondContainer = null;
 
     ScheduledExecutorService executor;
     ObservableList<ContainerModel> containerList;
@@ -54,6 +64,8 @@ public class MainController {
         executor = Executors.newScheduledThreadPool(1);
         containerList = FXCollections.observableArrayList();
         tableContainers.setItems(containerList);
+
+        splitPane.getItems().removeLast();
 
         tableContainers.skinProperty().addListener((a, b, c) -> {
             Pane header = (Pane)tableContainers.lookup("TableHeaderRow");
@@ -106,7 +118,13 @@ public class MainController {
                         hbox.getChildren().add(prefix);
                     }
 
-                    Label label = new Label(item.getCellName());
+                    var labelName = "";
+                    if(secondContainer != null && item == secondContainer) {
+                        labelName += "\uD83D\uDD0D ";
+                    }
+                    labelName += item.getName();
+
+                    Label label = new Label(labelName);
                     if(!item.active) {
                         label.setStyle("-fx-text-fill: red;"); // label.setStyle("-fx-text-fill: green;");
                     }
@@ -130,7 +148,7 @@ public class MainController {
                 super.updateItem(item, empty);
                 if (item == null || empty) {
                     setStyle("");
-                } else if (item == tableContainers.getSelectionModel().getSelectedItem()) {
+                } else if (item == firstContainer) {
                     setStyle("-fx-background-color: lightblue;");
                 } else {
                     setStyle("");
@@ -152,7 +170,7 @@ public class MainController {
 
                     if(noneMatch && container.logProcess != null) {
                         if (container.logProcess.isAlive()) {
-                            System.out.println("Deleting container logs process for: " + container.getCellName() + " " + container.getId());
+                            System.out.println("Deleting container logs process for: " + container.getName() + " " + container.getId());
                             container.logProcess.destroyForcibly();
                         }
                         container.logProcess = null;
@@ -178,7 +196,7 @@ public class MainController {
                 if (updated) {
                     containerList.sort(Comparator
                             .comparing(ContainerModel::isActive, Comparator.reverseOrder())
-                            .thenComparing(ContainerModel::getCellName));
+                            .thenComparing(ContainerModel::getName));
                 }
 
                 tableContainers.refresh();
@@ -202,23 +220,51 @@ public class MainController {
             var selectedContainer = tableContainers.getSelectionModel().getSelectedItem();
 
             if (selectedContainer != null) {
-                System.out.println("Reloading: " + selectedContainer.getCellName());
+                System.out.println("Reloading: " + selectedContainer.getName());
                 selectedContainer.reloading = true;
                 tableContainers.refresh();
-                bashSourceAndRun("docker_chs reload " + selectedContainer.getCellName());
+                bashSourceAndRun("docker_chs reload " + selectedContainer.getName());
             }
         });
+
+        buttonSplitView.setOnAction(event -> {
+            var list = splitPane.getItems();
+            if(list.size() == 1) {
+                list.add(logAnchor2);
+            }
+            else if(list.size() == 2) {
+                list.removeLast();
+                logAnchor2.getChildren().clear();
+            }
+            secondContainer = null;
+            tableContainers.refresh();
+        });
+
 
         tableContainers.setOnMouseClicked(event -> {
             var selectedContainer = tableContainers.getSelectionModel().getSelectedItem();
 
             if(selectedContainer != null) {
-                logAnchor.getChildren().clear();
-                logAnchor.getChildren().add(selectedContainer.virtualRichTextArea);
-                AnchorPane.setLeftAnchor(selectedContainer.virtualRichTextArea, 0.0);
-                AnchorPane.setRightAnchor(selectedContainer.virtualRichTextArea, 0.0);
-                AnchorPane.setTopAnchor(selectedContainer.virtualRichTextArea, 0.0);
-                AnchorPane.setBottomAnchor(selectedContainer.virtualRichTextArea, 0.0);
+                if(!event.isControlDown()) {
+                    logAnchor1.getChildren().clear();
+                    logAnchor1.getChildren().add(selectedContainer.virtualRichTextArea);
+                    AnchorPane.setLeftAnchor(selectedContainer.virtualRichTextArea, 0.0);
+                    AnchorPane.setRightAnchor(selectedContainer.virtualRichTextArea, 0.0);
+                    AnchorPane.setTopAnchor(selectedContainer.virtualRichTextArea, 0.0);
+                    AnchorPane.setBottomAnchor(selectedContainer.virtualRichTextArea, 0.0);
+                    firstContainer = selectedContainer;
+                    tableContainers.refresh();
+                }
+                else if (selectedContainer != firstContainer && splitPane.getItems().size() > 1) {
+                    logAnchor2.getChildren().clear();
+                    logAnchor2.getChildren().add(selectedContainer.virtualRichTextArea);
+                    AnchorPane.setLeftAnchor(selectedContainer.virtualRichTextArea, 0.0);
+                    AnchorPane.setRightAnchor(selectedContainer.virtualRichTextArea, 0.0);
+                    AnchorPane.setTopAnchor(selectedContainer.virtualRichTextArea, 0.0);
+                    AnchorPane.setBottomAnchor(selectedContainer.virtualRichTextArea, 0.0);
+                    secondContainer = selectedContainer;
+                    tableContainers.refresh();
+                }
             }
         });
 
@@ -297,7 +343,7 @@ public class MainController {
     }
 
     private void createLogProcessForContainer(ContainerModel container) {
-        System.out.println("creating process for: " + container.getCellName() + " " + container.getId());
+        System.out.println("creating process for: " + container.getName() + " " + container.getId());
 
         var pb = new ProcessBuilder("docker", "logs", "-f", container.getId());
         try {

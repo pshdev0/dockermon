@@ -39,9 +39,11 @@
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.Tooltip?>
 <?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
-
+<?import javafx.scene.shape.Circle?>
 <VBox prefHeight="628.0" prefWidth="925.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.pshdev0.dockermon.MainController">
   <children>
     <AnchorPane maxHeight="-1.0" maxWidth="-1.0" prefHeight="-1.0" prefWidth="-1.0" VBox.vgrow="ALWAYS">
@@ -53,15 +55,34 @@
                      <padding>
                          <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
                      </padding>
-                     <ButtonBar nodeOrientation="RIGHT_TO_LEFT" prefHeight="40.0" prefWidth="200.0">
-                        <buttons>
-                            <Button fx:id="buttonAws" disable="true" mnemonicParsing="false" text="🟠 Refresh AWS Keys"/>
-                            <Button fx:id="buttonRefresh" disable="true" mnemonicParsing="false" text="🐳 Reboot Dockermon"/>
-                            <Button fx:id="buttonReload" mnemonicParsing="false" text="🔄 Reload Service"/>
-                            <Button fx:id="buttonClear" mnemonicParsing="false" text="🪵 Clear log"/>
-                            <Button fx:id="buttonRemoveOld" mnemonicParsing="false" text="🧽 Remove Old Containers"/>
-                        </buttons>
-                     </ButtonBar>
+                     <HBox spacing="10" alignment="CENTER_LEFT">
+                         <!-- ButtonBar on the left -->
+                         <ButtonBar nodeOrientation="RIGHT_TO_LEFT" prefHeight="40.0">
+                             <buttons>
+                                 <Button fx:id="buttonSplitView" mnemonicParsing="false" text=" Split" maxWidth="Infinity" textOverrun="ELLIPSIS" HBox.hgrow="ALWAYS">
+                                     <tooltip>
+                                         <Tooltip text="Press Ctrl + Left click to specify your second container"/>
+                                     </tooltip>
+                                 </Button>
+                                 <Button fx:id="buttonAws" disable="true" mnemonicParsing="false" text="🟠 Refresh AWS Keys" maxWidth="Infinity" textOverrun="ELLIPSIS" HBox.hgrow="ALWAYS"/>
+                                 <Button fx:id="buttonRefresh" disable="true" mnemonicParsing="false" text="🐳 Reboot Dockermon" maxWidth="Infinity" textOverrun="ELLIPSIS" HBox.hgrow="ALWAYS"/>
+                                 <Button fx:id="buttonReload" mnemonicParsing="false" text="🔄 Reload Service" maxWidth="Infinity" textOverrun="ELLIPSIS" HBox.hgrow="ALWAYS"/>
+                                 <Button fx:id="buttonClear" mnemonicParsing="false" text="🪵 Clear log" maxWidth="Infinity" textOverrun="ELLIPSIS" HBox.hgrow="ALWAYS"/>
+                                 <Button fx:id="buttonRemoveOld" mnemonicParsing="false" text="🧽 Remove Old Containers" maxWidth="Infinity" textOverrun="ELLIPSIS" HBox.hgrow="ALWAYS"/>
+                             </buttons>
+                         </ButtonBar>
+
+                         <!-- VPN indicator with border -->
+                         <HBox spacing="10" disable="true" alignment="CENTER">
+                             <Circle radius="10" fill="green"/>
+                             <Label text="VPN On"/>
+                         </HBox>
+
+                         <HBox spacing="10" disable="true" alignment="CENTER">
+                             <Circle radius="10" fill="green"/>
+                             <Label text="AWS Tokens"/>
+                         </HBox>
+                     </HBox>
                      <Label text="Containers"/>
                      <SplitPane dividerPositions="0.35" VBox.vgrow="ALWAYS">
                          <AnchorPane minHeight="0.0" minWidth="0.0">
@@ -74,8 +95,13 @@
                                  </columns>
                              </TableView>
                          </AnchorPane>
-                         <AnchorPane fx:id="logAnchor" minHeight="0.0" minWidth="0.0">
-                         </AnchorPane>
+                         <SplitPane fx:id="splitPane" orientation="VERTICAL" dividerPositions="0.5" VBox.vgrow="ALWAYS">
+
+                             <AnchorPane fx:id="logAnchor1" minHeight="0.0" minWidth="0.0">
+                             </AnchorPane>
+                             <AnchorPane fx:id="logAnchor2" minHeight="0.0" minWidth="0.0">
+                             </AnchorPane>
+                         </SplitPane>
                      </SplitPane>
                  </VBox>
              </children>
