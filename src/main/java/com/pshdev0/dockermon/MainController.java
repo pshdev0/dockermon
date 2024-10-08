@@ -1,5 +1,7 @@
 package com.pshdev0.dockermon;
 
+import com.pshdev0.dockermon.utils.AWSUtils;
+import com.pshdev0.dockermon.utils.DockerUtils;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
@@ -202,6 +204,10 @@ public class MainController {
                 tableContainers.refresh();
             });
         }, 0, 1000, TimeUnit.MILLISECONDS);
+
+        executor.scheduleAtFixedRate(() -> {
+            AWSUtils.scanProfiles();
+        }, 0, 30, TimeUnit.HOURS);
 
         buttonRemoveOld.setOnAction(event -> {
             Platform.runLater(() -> tableContainers.setItems(containerList.filtered(c -> c.active)));

@@ -14,7 +14,7 @@ public class ContainerModel {
     Thread thread;
     long lastUpdateTimestamp = 0;
 
-    ContainerModel(String id, String name) {
+    public ContainerModel(String id, String name) {
         this.id = id;
         this.name = name;
         this.richTextArea = new InlineCssTextArea();

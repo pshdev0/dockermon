@@ -1,4 +1,6 @@
-package com.pshdev0.dockermon;
+package com.pshdev0.dockermon.utils;
+
+import com.pshdev0.dockermon.ContainerModel;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;

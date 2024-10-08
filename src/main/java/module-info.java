@@ -8,4 +8,6 @@ module com.pshdev0.dockermon {
 
     opens com.pshdev0.dockermon to javafx.fxml;
     exports com.pshdev0.dockermon;
+    exports com.pshdev0.dockermon.utils;
+    opens com.pshdev0.dockermon.utils to javafx.fxml;
 }
