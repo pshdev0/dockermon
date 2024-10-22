@@ -1,11 +1,11 @@
 # Dependencies
 The dependencies aren't in the artifactory so you'll need to install them manually.
 * Download the Oracle Open Source JavaFX SDK libraries from here: https://jdk.java.net/javafx22/
-* Unzip and add the `lib` folder to IntelliJ "Project Structure..." Libraries
+* Unzip and add the `lib` folder to IntelliJ "Project Structure..." `Modules` (or `Libraries`)
 * In "Edit Configurations" you should have an "Application" where you need to set the "Program arguments" text field to `--module-path /path/to/your/javafx-sdk/lib --add-modules=javafx.controls,javafx.fxml` (change `/path/to/your/javafx-sdk/lib` as appropriate). You'll also need to specify the Main class to run.
 * You should then be able to run the JavaFX application.
 
-For the RichTextFX console you'll need to download the following `.jar`s from Maven Central and add to the IntelliJ "Project Structure..." Libraries/Modules.
+For the RichTextFX console you'll need to download the following `.jar`s from Maven Central and add to the IntelliJ "Project Structure..." `Libraries` (or `Modules`)
 * `richtextfx-0.11.3.jar` - https://mvnrepository.com/artifact/org.fxmisc.richtext/richtextfx
 * `flowless-0.7.3.jar` - https://mvnrepository.com/artifact/org.fxmisc.flowless/flowless
 * `reactfx-2.0-M5.jar` - https://mvnrepository.com/artifact/org.reactfx/reactfx
@@ -26,7 +26,7 @@ For the RichTextFX console you'll need to download the following `.jar`s from Ma
 # TODO
 * Add a Refresh button to clear all processes and refresh.
 * Add AWS key checking to see if they've cleared, and add an AWS button to refresh the keys
-* Add VPN connection status
+* Add VPN connection status - I think we can use `ping -c 3 websenseproxy.internal.ch`
 * Add search function
 * Add Dockermon refresh button to force a logs flush
 
