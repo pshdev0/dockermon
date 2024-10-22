@@ -20,6 +20,11 @@ For the RichTextFX console you'll need to download the following `.jar`s from Ma
 ```
 Main-Class: com.pshdev0.dockermon.MainApplication
 ```
+* Run the app with e.g. below, changing `dockermon.jar` as required.
+```
+java --module-path /path/to/javafx-sdk/lib --add-modules javafx.controls,javafx.fxml -jar dockermon.jar
+```
+
 # How to Run
 * In a terminal run `docker_chs up`.
 * Run Dockermon, and you should see it pick up all your services.
