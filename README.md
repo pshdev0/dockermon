@@ -43,4 +43,5 @@ java --module-path /path/to/javafx-sdk/lib --add-modules javafx.controls,javafx.
 * Add VPN connection status - I think we can use `ping -c 3 websenseproxy.internal.ch`
 * Add search function
 * Add Dockermon refresh button to force a logs flush
+* Add UI to enable/disable services, modules, development mode etc.
 
