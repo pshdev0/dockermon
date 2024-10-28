@@ -205,9 +205,10 @@ public class MainController {
             });
         }, 0, 1000, TimeUnit.MILLISECONDS);
 
-        executor.scheduleAtFixedRate(() -> {
-            AWSUtils.scanProfiles();
-        }, 0, 30, TimeUnit.HOURS);
+        // todo - get scanning for AWS tokens working
+//        executor.scheduleAtFixedRate(() -> {
+//            AWSUtils.scanProfiles();
+//        }, 0, 30, TimeUnit.HOURS);
 
         buttonRemoveOld.setOnAction(event -> {
             Platform.runLater(() -> tableContainers.setItems(containerList.filtered(c -> c.active)));
