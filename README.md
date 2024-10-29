@@ -18,3 +18,5 @@
 * Add search function
 * Add Dockermon refresh button to force a logs flush
 * Add UI to enable/disable services, modules, development mode etc.
+# Troubleshooting
+* If after running you see no containers in the list, try deleting the `org.fxmisc.richtext` repo in you hidden `~/.m2` folder (and other related dependencies if that doesn't work)
