@@ -1,7 +1,7 @@
 # How to Run
 * In a terminal run `docker_chs up`, or alternatively in the `docker-chs-development` repo root, run `chs-dev up`.
 * In a separate terminal, navigate to the `dockermon` repo root directory, and run `mvn javafx:run`.
-* Alternatively, type `./run-dockermon.sh` in the terminal (Mac, Linux) (you may need to `chmod +x run-dockermon.sh` first)
+* Alternatively, type `./run.sh` in the terminal (Mac, Linux) (you may need to `chmod +x run.sh` first)
 # Information
 * Active containers are marked with a ✅, old containers with a 🛑
 * Click "Clean" button to remove old containers from the list
