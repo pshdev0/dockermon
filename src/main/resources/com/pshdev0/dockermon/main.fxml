@@ -74,14 +74,14 @@
 
                          <!-- VPN indicator with border -->
                          <HBox spacing="10" disable="true" alignment="CENTER">
-                             <Circle radius="10" fill="green"/>
+                             <Circle fx:id="vpnCircle" radius="10" fill="indianred"/>
                              <Label text="VPN On"/>
                          </HBox>
 
-                         <HBox spacing="10" disable="true" alignment="CENTER">
-                             <Circle radius="10" fill="green"/>
-                             <Label text="AWS Tokens"/>
-                         </HBox>
+<!--                         <HBox spacing="10" disable="true" alignment="CENTER">-->
+<!--                             <Circle radius="10" fill="green"/>-->
+<!--                             <Label text="AWS Tokens"/>-->
+<!--                         </HBox>-->
                      </HBox>
                      <Label text="Containers"/>
                      <SplitPane dividerPositions="0.35" VBox.vgrow="ALWAYS">

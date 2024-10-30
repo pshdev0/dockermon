@@ -1,7 +1,7 @@
 package com.pshdev0.dockermon;
 
-import com.pshdev0.dockermon.utils.AWSUtils;
 import com.pshdev0.dockermon.utils.DockerUtils;
+import com.pshdev0.dockermon.utils.ProxyUtils;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
@@ -19,7 +19,9 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
+import javafx.scene.shape.Circle;
 import javafx.scene.text.Font;
+import javafx.scene.paint.Color;
 import org.fxmisc.richtext.InlineCssTextArea;
 
 import java.io.BufferedReader;
@@ -52,6 +54,8 @@ public class MainController {
     AnchorPane logAnchor2;
     @FXML
     SplitPane splitPane;
+    @FXML
+    Circle vpnCircle;
 
     ContainerModel firstContainer = null;
     ContainerModel secondContainer = null;
@@ -205,10 +209,14 @@ public class MainController {
             });
         }, 0, 1000, TimeUnit.MILLISECONDS);
 
-        // todo - get scanning for AWS tokens working
 //        executor.scheduleAtFixedRate(() -> {
 //            AWSUtils.scanProfiles();
 //        }, 0, 30, TimeUnit.HOURS);
+
+        executor.scheduleAtFixedRate(() -> {
+            var status = ProxyUtils.isProxyActive();
+            Platform.runLater(() -> vpnCircle.setFill(status ? Color.LIGHTGREEN : Color.INDIANRED));
+        }, 0, 60, TimeUnit.MINUTES);
 
         buttonRemoveOld.setOnAction(event -> {
             Platform.runLater(() -> tableContainers.setItems(containerList.filtered(c -> c.active)));
