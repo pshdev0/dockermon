@@ -12,11 +12,8 @@
 * Select log text and CTRL+C to copy log text
 * Click "Split" button to split the view vertically. You can CTRL + Left Click another container to view that second container.
 # TODO
-* Add a Refresh button to clear all processes and refresh.
-* Add AWS key checking to see if they've cleared, and add an AWS button to refresh the keys
-* Add VPN connection status - I think we can use `ping -c 3 websenseproxy.internal.ch`
 * Add search function
-* Add Dockermon refresh button to force a logs flush
-* Add UI to enable/disable services, modules, development mode etc.
+* Maybe add a Refresh button to clear all processes and refresh?
+* Maybe add Dockermon refresh button to force a logs flush?
 # Troubleshooting
 * If after running you see no containers in the list, try deleting the `org.fxmisc.richtext` repo in you hidden `~/.m2` folder (and other related dependencies if that doesn't work)
