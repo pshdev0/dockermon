@@ -27,6 +27,8 @@ import org.fxmisc.richtext.InlineCssTextArea;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -56,6 +58,8 @@ public class MainController {
     SplitPane splitPane;
     @FXML
     Circle vpnCircle;
+    @FXML
+    Label vpnCircleLabel;
 
     ContainerModel firstContainer = null;
     ContainerModel secondContainer = null;
@@ -215,7 +219,16 @@ public class MainController {
 
         executor.scheduleAtFixedRate(() -> {
             var status = ProxyUtils.isProxyActive();
-            Platform.runLater(() -> vpnCircle.setFill(status ? Color.LIGHTGREEN : Color.INDIANRED));
+            Platform.runLater(() -> {
+                if(status) {
+                    vpnCircle.setFill(Color.LIGHTGREEN);
+                    vpnCircleLabel.setText("VPN active\n@ " + LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm")));
+                }
+                else {
+                    vpnCircle.setFill(Color.INDIANRED);
+                    vpnCircleLabel.setText("VPN inactive\n@ " + LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm")));
+                }
+            });
         }, 0, 60, TimeUnit.MINUTES);
 
         buttonRemoveOld.setOnAction(event -> {
