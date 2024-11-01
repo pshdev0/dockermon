@@ -64,8 +64,8 @@
                                          <Tooltip text="Press Ctrl + Left click to specify your second container"/>
                                      </tooltip>
                                  </Button>
-                                 <Button fx:id="buttonAws" disable="true" mnemonicParsing="false" text="🟠 Refresh AWS Keys" maxWidth="Infinity" textOverrun="ELLIPSIS" HBox.hgrow="ALWAYS"/>
-                                 <Button fx:id="buttonRefresh" disable="true" mnemonicParsing="false" text="🐳 Reboot Dockermon" maxWidth="Infinity" textOverrun="ELLIPSIS" HBox.hgrow="ALWAYS"/>
+<!--                                 <Button fx:id="buttonAws" disable="true" mnemonicParsing="false" text="🟠 Refresh AWS Keys" maxWidth="Infinity" textOverrun="ELLIPSIS" HBox.hgrow="ALWAYS"/>-->
+                                 <Button fx:id="buttonRefresh" disable="true" mnemonicParsing="false" text="🐳 Flush Logs" maxWidth="Infinity" textOverrun="ELLIPSIS" HBox.hgrow="ALWAYS"/>
                                  <Button fx:id="buttonReload" mnemonicParsing="false" text="🔄 Reload Service" maxWidth="Infinity" textOverrun="ELLIPSIS" HBox.hgrow="ALWAYS"/>
                                  <Button fx:id="buttonClear" mnemonicParsing="false" text="🪵 Clear log" maxWidth="Infinity" textOverrun="ELLIPSIS" HBox.hgrow="ALWAYS"/>
                                  <Button fx:id="buttonRemoveOld" mnemonicParsing="false" text="🧽 Remove Old Containers" maxWidth="Infinity" textOverrun="ELLIPSIS" HBox.hgrow="ALWAYS"/>
