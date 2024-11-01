@@ -73,7 +73,7 @@
                          </ButtonBar>
 
                          <!-- VPN indicator with border -->
-                         <HBox spacing="10" disable="true" alignment="CENTER">
+                         <HBox spacing="10" alignment="CENTER">
                              <Circle fx:id="vpnCircle" radius="10" fill="indianred"/>
                              <Label fx:id="vpnCircleLabel" text="VPN inactive"/>
                          </HBox>

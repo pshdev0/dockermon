@@ -15,6 +15,7 @@ import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
@@ -218,17 +219,7 @@ public class MainController {
 //        }, 0, 30, TimeUnit.HOURS);
 
         executor.scheduleAtFixedRate(() -> {
-            var status = ProxyUtils.isProxyActive();
-            Platform.runLater(() -> {
-                if(status) {
-                    vpnCircle.setFill(Color.LIGHTGREEN);
-                    vpnCircleLabel.setText("VPN active\n@ " + LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm")));
-                }
-                else {
-                    vpnCircle.setFill(Color.INDIANRED);
-                    vpnCircleLabel.setText("VPN inactive\n@ " + LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm")));
-                }
-            });
+            updateVpnStatus();
         }, 0, 60, TimeUnit.MINUTES);
 
         buttonRemoveOld.setOnAction(event -> {
@@ -298,6 +289,26 @@ public class MainController {
 
         tableCol.setSortable(false);
         tableCol.prefWidthProperty().bind(tableContainers.widthProperty().subtract(18));
+
+        Tooltip.install(vpnCircle, new Tooltip("The VPN status will update every hour, or click the indicator circle to update instantly"));
+        vpnCircle.setOnMouseClicked(event -> updateVpnStatus());
+    }
+
+    private void updateVpnStatus() {
+        Platform.runLater(() -> {
+            System.out.print("Updating VPN status... ");
+            var status = ProxyUtils.isProxyActive();
+            if(status) {
+                vpnCircle.setFill(Color.LIGHTGREEN);
+                vpnCircleLabel.setText("VPN active\n@ " + LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm")));
+                System.out.println("active");
+            }
+            else {
+                vpnCircle.setFill(Color.INDIANRED);
+                vpnCircleLabel.setText("VPN inactive\n@ " + LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm")));
+                System.out.println("inactive");
+            }
+        });
     }
 
     private void bashSourceAndRun(String command) {
