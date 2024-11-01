@@ -15,15 +15,21 @@ import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.CycleMethod;
+import javafx.scene.paint.LinearGradient;
+import javafx.scene.paint.Paint;
+import javafx.scene.paint.Stop;
 import javafx.scene.shape.Circle;
 import javafx.scene.text.Font;
 import javafx.scene.paint.Color;
 import org.fxmisc.richtext.InlineCssTextArea;
+import org.fxmisc.richtext.model.TwoDimensional;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -61,6 +67,14 @@ public class MainController {
     Circle vpnCircle;
     @FXML
     Label vpnCircleLabel;
+    @FXML
+    TextField searchTextField;
+    @FXML
+    Button clearSearchTextButton;
+    @FXML
+    Button prevSearch;
+    @FXML
+    Button nextSearch;
 
     ContainerModel firstContainer = null;
     ContainerModel secondContainer = null;
@@ -212,15 +226,13 @@ public class MainController {
 
                 tableContainers.refresh();
             });
-        }, 0, 1000, TimeUnit.MILLISECONDS);
+        }, 0, 250, TimeUnit.MILLISECONDS);
 
 //        executor.scheduleAtFixedRate(() -> {
 //            AWSUtils.scanProfiles();
 //        }, 0, 30, TimeUnit.HOURS);
 
-        executor.scheduleAtFixedRate(() -> {
-            updateVpnStatus();
-        }, 0, 60, TimeUnit.MINUTES);
+        executor.scheduleAtFixedRate(this::updateVpnStatus, 0, 60, TimeUnit.MINUTES);
 
         buttonRemoveOld.setOnAction(event -> {
             Platform.runLater(() -> tableContainers.setItems(containerList.filtered(c -> c.active)));
@@ -259,7 +271,6 @@ public class MainController {
             tableContainers.refresh();
         });
 
-
         tableContainers.setOnMouseClicked(event -> {
             var selectedContainer = tableContainers.getSelectionModel().getSelectedItem();
 
@@ -292,6 +303,76 @@ public class MainController {
 
         Tooltip.install(vpnCircle, new Tooltip("The VPN status will update every hour, or click the indicator circle to update instantly"));
         vpnCircle.setOnMouseClicked(event -> updateVpnStatus());
+
+        searchTextField.setOnAction(event -> updateLogsWithSearch(searchTextField.getText()));
+
+        clearSearchTextButton.setOnAction(event -> {
+            searchTextField.setText("");
+            firstContainer.applyStyles();
+            firstContainer.richTextArea.setLineHighlighterOn(false);
+        });
+
+        prevSearch.setOnAction(event -> {
+            firstContainer.currentSearchCaret--;
+            if(firstContainer.currentSearchCaret < 0) {
+                firstContainer.currentSearchCaret = firstContainer.searchCarets.size() - 1;
+            }
+            updateCaret();
+        });
+
+        nextSearch.setOnAction(event -> {
+            firstContainer.currentSearchCaret++;
+            if(firstContainer.currentSearchCaret >= firstContainer.searchCarets.size()) {
+                firstContainer.currentSearchCaret = 0;
+            }
+            updateCaret();
+        });
+    }
+
+    private void updateCaret() {
+        int caret = firstContainer.searchCarets.get(firstContainer.currentSearchCaret);
+        int currentParagraph = firstContainer.richTextArea.offsetToPosition(caret, TwoDimensional.Bias.Forward).getMajor();
+
+        firstContainer.richTextArea.displaceCaret(caret);
+        firstContainer.richTextArea.showParagraphAtCenter(currentParagraph);
+    }
+
+    private void updateLogsWithSearch(String searchText) {
+        System.out.println("searching for: " + searchText);
+
+        Paint customPaint = new LinearGradient(
+                0, 0, 1, 0, true, CycleMethod.NO_CYCLE,
+                new Stop(0, Color.GREEN),
+                new Stop(1, Color.BLACK)
+        );
+
+        firstContainer.applyStyles();
+
+        firstContainer.richTextArea.setLineHighlighterFill(customPaint);
+        firstContainer.richTextArea.setLineHighlighterOn(true);
+
+        String content = firstContainer.richTextArea.getText();
+        int lastIndex = 0;
+
+        firstContainer.searchCarets.clear();
+
+        // efficient case-insensitive search
+        while (lastIndex <= content.length() - searchText.length()) {
+            if (content.regionMatches(true, lastIndex, searchText, 0, searchText.length())) {
+                int end = lastIndex + searchText.length();
+                firstContainer.richTextArea.setStyle(lastIndex, end, "-fx-stroke: white; -rtfx-background-color: red;");
+                lastIndex = end;
+
+                firstContainer.searchCarets.add(lastIndex);
+            } else {
+                lastIndex++;
+            }
+        }
+
+        if(!firstContainer.searchCarets.isEmpty()) {
+            firstContainer.currentSearchCaret = firstContainer.searchCarets.size() - 1;
+            updateCaret();
+        }
     }
 
     private void updateVpnStatus() {
@@ -399,24 +480,12 @@ public class MainController {
                         logBuffer.append(line).append("\n");
 
                         if (logBuffer.length() > 1024*16) {
-                            if(System.currentTimeMillis() - container.lastUpdateTimestamp > 5000) {
-                                logBuffer.append("\uD83C\uDF0A\n");
-                            }
-                            String logsToAppend = logBuffer.toString();
-                            Platform.runLater(() -> {
-                                parseAnsiCodesAndApplyStyles(logsToAppend, container.richTextArea);
-                            });
-                            logBuffer.setLength(0);
+                            updateLogs(logBuffer, container);
                             container.lastUpdateTimestamp = System.currentTimeMillis();
                         }
                         else if(!processReader.ready()) {
                             if (!logBuffer.isEmpty()) {
-                                if(System.currentTimeMillis() - container.lastUpdateTimestamp > 5000) {
-                                    logBuffer.append("\uD83C\uDF0A\n");
-                                }
-                                String remainingLogs = logBuffer.toString();
-                                Platform.runLater(() -> parseAnsiCodesAndApplyStyles(remainingLogs, container.richTextArea));
-                                logBuffer.setLength(0);
+                                updateLogs(logBuffer, container);
                             }
                             container.lastUpdateTimestamp = System.currentTimeMillis();
                         }
@@ -432,5 +501,19 @@ public class MainController {
             System.out.println("! Error creating log process");
             e.printStackTrace();
         }
+    }
+
+    private void updateLogs(StringBuilder logBuffer, ContainerModel container) {
+        if(System.currentTimeMillis() - container.lastUpdateTimestamp > 5000) {
+            logBuffer.append("\uD83C\uDF0A\n");
+        }
+        String remainingLogs = logBuffer.toString();
+        Platform.runLater(() -> {
+            int textLength = container.richTextArea.getLength();
+            parseAnsiCodesAndApplyStyles(remainingLogs, container.richTextArea);
+            var newStyles = container.richTextArea.getStyleSpans(textLength, container.richTextArea.getLength());
+            newStyles.forEach(container.originalStyles::add);
+        });
+        logBuffer.setLength(0);
     }
 }

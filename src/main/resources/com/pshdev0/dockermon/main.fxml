@@ -44,6 +44,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.shape.Circle?>
+<?import javafx.scene.control.TextField?>
 <VBox prefHeight="628.0" prefWidth="925.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.pshdev0.dockermon.MainController">
   <children>
     <AnchorPane maxHeight="-1.0" maxWidth="-1.0" prefHeight="-1.0" prefWidth="-1.0" VBox.vgrow="ALWAYS">
@@ -83,7 +84,16 @@
 <!--                             <Label text="AWS Tokens"/>-->
 <!--                         </HBox>-->
                      </HBox>
-                     <Label text="Containers"/>
+                     <HBox spacing="10">
+                         <padding>
+                             <Insets bottom="5.0" left="5.0"/>
+                         </padding>
+                         <Label translateY="3" text="Container search:"/>
+                         <TextField fx:id="searchTextField" HBox.hgrow="ALWAYS"/>
+                         <Button fx:id="prevSearch">▲</Button>
+                         <Button fx:id="nextSearch">▼</Button>
+                         <Button fx:id="clearSearchTextButton">Clear</Button>
+                     </HBox>
                      <SplitPane dividerPositions="0.35" VBox.vgrow="ALWAYS">
                          <AnchorPane minHeight="0.0" minWidth="0.0">
                              <TableView fx:id="tableContainers" AnchorPane.bottomAnchor="0.0"
