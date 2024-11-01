@@ -1,7 +1,7 @@
 package com.pshdev0.dockermon;
 
 import com.pshdev0.dockermon.utils.DockerUtils;
-import com.pshdev0.dockermon.utils.ProxyUtils;
+import com.pshdev0.dockermon.utils.VpnUtils;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
@@ -21,27 +21,15 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.CycleMethod;
-import javafx.scene.paint.LinearGradient;
-import javafx.scene.paint.Paint;
-import javafx.scene.paint.Stop;
 import javafx.scene.shape.Circle;
 import javafx.scene.text.Font;
-import javafx.scene.paint.Color;
-import org.fxmisc.richtext.InlineCssTextArea;
-import org.fxmisc.richtext.model.TwoDimensional;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+
+import com.pshdev0.dockermon.utils.Helper;
 
 public class MainController {
 
@@ -81,8 +69,6 @@ public class MainController {
 
     ScheduledExecutorService executor;
     ObservableList<ContainerModel> containerList;
-
-    private static final Pattern ANSI_PATTERN = Pattern.compile("\u001B\\[(\\d+)?m");
 
     @FXML
     public void initialize() {
@@ -167,7 +153,6 @@ public class MainController {
         });
 
         tableContainers.setRowFactory(row -> new TableRow<>() {
-
             @Override
             protected void updateItem(ContainerModel item, boolean empty) {
                 super.updateItem(item, empty);
@@ -212,7 +197,7 @@ public class MainController {
 
                     if (!onList) {
                         containerList.add(container);
-                        createLogProcessForContainer(container);
+                        container.createLogProcessForContainer();
                         updated = true;
                     }
                 }
@@ -226,50 +211,16 @@ public class MainController {
 
                 tableContainers.refresh();
             });
-        }, 0, 250, TimeUnit.MILLISECONDS);
+        }, 0, 1000, TimeUnit.MILLISECONDS);
 
 //        executor.scheduleAtFixedRate(() -> {
 //            AWSUtils.scanProfiles();
 //        }, 0, 30, TimeUnit.HOURS);
 
-        executor.scheduleAtFixedRate(this::updateVpnStatus, 0, 60, TimeUnit.MINUTES);
-
-        buttonRemoveOld.setOnAction(event -> {
-            Platform.runLater(() -> tableContainers.setItems(containerList.filtered(c -> c.active)));
-            tableContainers.refresh();
-        });
-
-        buttonClear.setOnAction(event -> Platform.runLater(() -> {
-            var selectedItem = tableContainers.getSelectionModel().getSelectedItem();
-
-            if(selectedItem != null) {
-                selectedItem.richTextArea.clear();
-            }
-        }));
-
-        buttonReload.setOnAction(event -> {
-            var selectedContainer = tableContainers.getSelectionModel().getSelectedItem();
-
-            if (selectedContainer != null) {
-                System.out.println("Reloading: " + selectedContainer.getName());
-                selectedContainer.reloading = true;
-                tableContainers.refresh();
-                bashSourceAndRun("docker_chs reload " + selectedContainer.getName());
-            }
-        });
-
-        buttonSplitView.setOnAction(event -> {
-            var list = splitPane.getItems();
-            if(list.size() == 1) {
-                list.add(logAnchor2);
-            }
-            else if(list.size() == 2) {
-                list.removeLast();
-                logAnchor2.getChildren().clear();
-            }
-            secondContainer = null;
-            tableContainers.refresh();
-        });
+        // VPN
+        executor.scheduleAtFixedRate(() -> VpnUtils.updateVpnStatus(vpnCircle, vpnCircleLabel), 0, 60, TimeUnit.MINUTES);
+        Tooltip.install(vpnCircle, new Tooltip("The VPN status will update every hour, or click the indicator circle to update instantly"));
+        vpnCircle.setOnMouseClicked(event -> VpnUtils.updateVpnStatus(vpnCircle, vpnCircleLabel));
 
         tableContainers.setOnMouseClicked(event -> {
             var selectedContainer = tableContainers.getSelectionModel().getSelectedItem();
@@ -301,10 +252,45 @@ public class MainController {
         tableCol.setSortable(false);
         tableCol.prefWidthProperty().bind(tableContainers.widthProperty().subtract(18));
 
-        Tooltip.install(vpnCircle, new Tooltip("The VPN status will update every hour, or click the indicator circle to update instantly"));
-        vpnCircle.setOnMouseClicked(event -> updateVpnStatus());
+        // buttons
+        buttonRemoveOld.setOnAction(event -> {
+            Platform.runLater(() -> tableContainers.setItems(containerList.filtered(c -> c.active)));
+            tableContainers.refresh();
+        });
 
-        searchTextField.setOnAction(event -> updateLogsWithSearch(searchTextField.getText()));
+        buttonClear.setOnAction(event -> Platform.runLater(() -> {
+            var selectedItem = tableContainers.getSelectionModel().getSelectedItem();
+
+            if(selectedItem != null) {
+                selectedItem.richTextArea.clear();
+            }
+        }));
+
+        buttonReload.setOnAction(event -> {
+            var selectedContainer = tableContainers.getSelectionModel().getSelectedItem();
+
+            if (selectedContainer != null) {
+                System.out.println("Reloading: " + selectedContainer.getName());
+                selectedContainer.reloading = true;
+                tableContainers.refresh();
+                Helper.bashSourceAndRun("docker_chs reload " + selectedContainer.getName());
+            }
+        });
+
+        buttonSplitView.setOnAction(event -> {
+            var list = splitPane.getItems();
+            if(list.size() == 1) {
+                list.add(logAnchor2);
+            }
+            else if(list.size() == 2) {
+                list.removeLast();
+                logAnchor2.getChildren().clear();
+            }
+            secondContainer = null;
+            tableContainers.refresh();
+        });
+
+        searchTextField.setOnAction(event -> firstContainer.search(searchTextField.getText()));
 
         clearSearchTextButton.setOnAction(event -> {
             searchTextField.setText("");
@@ -312,208 +298,7 @@ public class MainController {
             firstContainer.richTextArea.setLineHighlighterOn(false);
         });
 
-        prevSearch.setOnAction(event -> {
-            firstContainer.currentSearchCaret--;
-            if(firstContainer.currentSearchCaret < 0) {
-                firstContainer.currentSearchCaret = firstContainer.searchCarets.size() - 1;
-            }
-            updateCaret();
-        });
-
-        nextSearch.setOnAction(event -> {
-            firstContainer.currentSearchCaret++;
-            if(firstContainer.currentSearchCaret >= firstContainer.searchCarets.size()) {
-                firstContainer.currentSearchCaret = 0;
-            }
-            updateCaret();
-        });
-    }
-
-    private void updateCaret() {
-        int caret = firstContainer.searchCarets.get(firstContainer.currentSearchCaret);
-        int currentParagraph = firstContainer.richTextArea.offsetToPosition(caret, TwoDimensional.Bias.Forward).getMajor();
-
-        firstContainer.richTextArea.displaceCaret(caret);
-        firstContainer.richTextArea.showParagraphAtCenter(currentParagraph);
-    }
-
-    private void updateLogsWithSearch(String searchText) {
-        System.out.println("searching for: " + searchText);
-
-        Paint customPaint = new LinearGradient(
-                0, 0, 1, 0, true, CycleMethod.NO_CYCLE,
-                new Stop(0, Color.GREEN),
-                new Stop(1, Color.BLACK)
-        );
-
-        firstContainer.applyStyles();
-
-        firstContainer.richTextArea.setLineHighlighterFill(customPaint);
-        firstContainer.richTextArea.setLineHighlighterOn(true);
-
-        String content = firstContainer.richTextArea.getText();
-        int lastIndex = 0;
-
-        firstContainer.searchCarets.clear();
-
-        // efficient case-insensitive search
-        while (lastIndex <= content.length() - searchText.length()) {
-            if (content.regionMatches(true, lastIndex, searchText, 0, searchText.length())) {
-                int end = lastIndex + searchText.length();
-                firstContainer.richTextArea.setStyle(lastIndex, end, "-fx-stroke: white; -rtfx-background-color: red;");
-                lastIndex = end;
-
-                firstContainer.searchCarets.add(lastIndex);
-            } else {
-                lastIndex++;
-            }
-        }
-
-        if(!firstContainer.searchCarets.isEmpty()) {
-            firstContainer.currentSearchCaret = firstContainer.searchCarets.size() - 1;
-            updateCaret();
-        }
-    }
-
-    private void updateVpnStatus() {
-        Platform.runLater(() -> {
-            System.out.print("Updating VPN status... ");
-            var status = ProxyUtils.isProxyActive();
-            if(status) {
-                vpnCircle.setFill(Color.LIGHTGREEN);
-                vpnCircleLabel.setText("VPN active\n@ " + LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm")));
-                System.out.println("active");
-            }
-            else {
-                vpnCircle.setFill(Color.INDIANRED);
-                vpnCircleLabel.setText("VPN inactive\n@ " + LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm")));
-                System.out.println("inactive");
-            }
-        });
-    }
-
-    private void bashSourceAndRun(String command) {
-        new Thread(() -> {
-            var pb = new ProcessBuilder("bash", "-c", "source ~/.bash_profile && " + command);
-            try {
-                Process process = pb.start();
-                int exitCode = process.waitFor();  // wait for the process to finish
-
-                Platform.runLater(() -> System.out.println("Process finished with exit code: " + exitCode));
-            } catch (IOException | InterruptedException e) {
-                Platform.runLater(() -> System.out.println("Error reloading: " + e.getMessage()));
-            }
-        }).start();
-    }
-
-    private void parseAnsiCodesAndApplyStyles(String line, InlineCssTextArea area) {
-        Matcher matcher = ANSI_PATTERN.matcher(line);
-        int lastIndex = 0;
-        String currentStyle = "-fx-fill: white;";
-
-        var scrollY = area.getEstimatedScrollY();
-        var maxScrollY = area.getTotalHeightEstimate() - area.getHeight();
-
-        while (matcher.find()) {
-            String ansiCode = matcher.group(1);
-
-            if (matcher.start() > lastIndex) {
-                area.appendText(line.substring(lastIndex, matcher.start()));
-                if (!currentStyle.isEmpty()) {
-                    area.setStyle(area.getLength() - (matcher.start() - lastIndex), area.getLength(), currentStyle);
-                }
-            }
-
-            currentStyle = getStyleFromAnsiCode(ansiCode);
-            lastIndex = matcher.end();
-        }
-
-        if (lastIndex < line.length()) {
-            area.appendText(line.substring(lastIndex));
-            if (!currentStyle.isEmpty()) {
-                area.setStyle(area.getLength() - (line.length() - lastIndex), area.getLength(), currentStyle);
-            }
-        }
-
-        // if the scroll bar is at the bottom, scroll to the end to view the new material
-        if(scrollY >= maxScrollY - 10) {
-            area.requestFollowCaret();
-        }
-    }
-
-    private String getStyleFromAnsiCode(String ansiCode) {
-        return switch (ansiCode) {
-            case "30" -> "-fx-fill: black; -fx-font-weight: bold;";         // black
-            case "31" -> "-fx-fill: red; -fx-font-weight: bold;";           // red
-            case "32" -> "-fx-fill: lightgreen; -fx-font-weight: bold;";    // green
-            case "33" -> "-fx-fill: yellow; -fx-font-weight: bold;";        // yellow
-            case "34" -> "-fx-fill: lightblue; -fx-font-weight: bold;";          // blue
-            case "35" -> "-fx-fill: magenta; -fx-font-weight: bold;";       // magenta
-            case "36" -> "-fx-fill: cyan; -fx-font-weight: bold;";          // cyan
-            case "90" -> "-fx-fill: gray; -fx-font-weight: bold;";          // bright black (gray)
-            case "91" -> "-fx-fill: lightcoral; -fx-font-weight: bold;";    // bright red
-            case "92" -> "-fx-fill: lightgreen; -fx-font-weight: bold;";    // bright green
-            case "93" -> "-fx-fill: lightyellow; -fx-font-weight: bold;";   // bright yellow
-            case "94" -> "-fx-fill: lightskyblue; -fx-font-weight: bold;";  // bright blue
-            case "95" -> "-fx-fill: lightpink; -fx-font-weight: bold;";     // bright magenta
-            case "96" -> "-fx-fill: lightcyan; -fx-font-weight: bold;";     // bright cyan
-            case "97" -> "-fx-fill: white;";         // bright white (default)
-            default -> "-fx-fill: white;";
-        };
-    }
-
-    private void createLogProcessForContainer(ContainerModel container) {
-        System.out.println("creating process for: " + container.getName() + " " + container.getId());
-
-        var pb = new ProcessBuilder("docker", "logs", "-f", container.getId());
-        try {
-            container.richTextArea.clear();
-            container.logProcess = pb.start(); // start the docker logs process
-
-            // start the docker log pipe
-            container.thread = new Thread(() -> {
-                StringBuilder logBuffer = new StringBuilder();
-                try (BufferedReader processReader = new BufferedReader(
-                        new InputStreamReader(container.logProcess.getInputStream()))) {
-                    String line;
-                    while ((line = processReader.readLine()) != null) {
-                        logBuffer.append(line).append("\n");
-
-                        if (logBuffer.length() > 1024*16) {
-                            updateLogs(logBuffer, container);
-                            container.lastUpdateTimestamp = System.currentTimeMillis();
-                        }
-                        else if(!processReader.ready()) {
-                            if (!logBuffer.isEmpty()) {
-                                updateLogs(logBuffer, container);
-                            }
-                            container.lastUpdateTimestamp = System.currentTimeMillis();
-                        }
-                    }
-                } catch (IOException e) {
-                    System.out.println("! Error writing process logs to output stream");
-                    e.printStackTrace();
-                }
-            });
-
-            container.thread.start();
-        } catch (IOException e) {
-            System.out.println("! Error creating log process");
-            e.printStackTrace();
-        }
-    }
-
-    private void updateLogs(StringBuilder logBuffer, ContainerModel container) {
-        if(System.currentTimeMillis() - container.lastUpdateTimestamp > 5000) {
-            logBuffer.append("\uD83C\uDF0A\n");
-        }
-        String remainingLogs = logBuffer.toString();
-        Platform.runLater(() -> {
-            int textLength = container.richTextArea.getLength();
-            parseAnsiCodesAndApplyStyles(remainingLogs, container.richTextArea);
-            var newStyles = container.richTextArea.getStyleSpans(textLength, container.richTextArea.getLength());
-            newStyles.forEach(container.originalStyles::add);
-        });
-        logBuffer.setLength(0);
+        prevSearch.setOnAction(event -> firstContainer.moveCaretUp());
+        nextSearch.setOnAction(event -> firstContainer.moveCaretDown());
     }
 }

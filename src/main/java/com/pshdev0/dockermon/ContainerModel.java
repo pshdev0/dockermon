@@ -1,12 +1,24 @@
 package com.pshdev0.dockermon;
 
+import javafx.application.Platform;
+import javafx.scene.paint.Color;
+import javafx.scene.paint.CycleMethod;
+import javafx.scene.paint.LinearGradient;
+import javafx.scene.paint.Paint;
+import javafx.scene.paint.Stop;
 import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.InlineCssTextArea;
 import org.fxmisc.richtext.model.StyleSpan;
 import org.fxmisc.richtext.model.StyleSpansBuilder;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.pshdev0.dockermon.utils.Helper;
+import org.fxmisc.richtext.model.TwoDimensional;
 
 public class ContainerModel {
     String id;
@@ -21,6 +33,11 @@ public class ContainerModel {
     List<StyleSpan<String>> originalStyles;
     List<Integer> searchCarets;
     int currentSearchCaret;
+    Paint customPaint = new LinearGradient(
+            0, 0, 1, 0, true, CycleMethod.NO_CYCLE,
+            new Stop(0, Color.GREEN),
+            new Stop(1, Color.BLACK)
+    );
 
     public ContainerModel(String id, String name) {
         this.id = id;
@@ -69,11 +86,126 @@ public class ContainerModel {
         this.active = active;
     }
 
-    public void applyStyles() {
+    void applyStyles() {
         StyleSpansBuilder<String> spansBuilder = new StyleSpansBuilder<>();
         for (StyleSpan<String> span : originalStyles) {
             spansBuilder.add(span);
         }
         this.richTextArea.setStyleSpans(0, spansBuilder.create());
+    }
+
+    void createLogProcessForContainer() {
+        System.out.println("creating process for: " + getName() + " " + getId());
+
+        var pb = new ProcessBuilder("docker", "logs", "-f", getId());
+        try {
+            richTextArea.clear();
+            logProcess = pb.start(); // start the docker logs process
+
+            // start the docker log pipe
+            thread = new Thread(() -> {
+                StringBuilder logBuffer = new StringBuilder();
+                try (BufferedReader processReader = new BufferedReader(
+                        new InputStreamReader(logProcess.getInputStream()))) {
+                    String line;
+                    while ((line = processReader.readLine()) != null) {
+                        logBuffer.append(line).append("\n");
+
+                        if (logBuffer.length() > 1024*16) {
+                            updateLogs(logBuffer);
+                            lastUpdateTimestamp = System.currentTimeMillis();
+                        }
+                        else if(!processReader.ready()) {
+                            if (!logBuffer.isEmpty()) {
+                                updateLogs(logBuffer);
+                            }
+                            lastUpdateTimestamp = System.currentTimeMillis();
+                        }
+                    }
+                } catch (IOException e) {
+                    System.out.println("! Error writing process logs to output stream");
+                    e.printStackTrace();
+                }
+            });
+
+            thread.start();
+        } catch (IOException e) {
+            System.out.println("! Error creating log process");
+            e.printStackTrace();
+        }
+    }
+
+    void updateLogs(StringBuilder logBuffer) {
+        if(System.currentTimeMillis() - lastUpdateTimestamp > 5000) {
+            logBuffer.append("\uD83C\uDF0A\n");
+        }
+        String remainingLogs = logBuffer.toString();
+        Platform.runLater(() -> {
+            int textLength = richTextArea.getLength();
+            Helper.parseAnsiCodesAndApplyStyles(remainingLogs, richTextArea);
+            var newStyles = richTextArea.getStyleSpans(textLength, richTextArea.getLength());
+            newStyles.forEach(originalStyles::add);
+        });
+        logBuffer.setLength(0);
+    }
+
+    private void updateCaret() {
+        int caret = searchCarets.get(currentSearchCaret);
+        int currentParagraph = richTextArea.offsetToPosition(caret, TwoDimensional.Bias.Forward).getMajor();
+
+        richTextArea.displaceCaret(caret);
+        richTextArea.showParagraphAtCenter(currentParagraph);
+    }
+
+    void moveCaretDown() {
+        currentSearchCaret++;
+        if(currentSearchCaret >= searchCarets.size()) {
+            currentSearchCaret = 0;
+        }
+        updateCaret();
+    }
+
+    void moveCaretUp() {
+        currentSearchCaret--;
+        if(currentSearchCaret < 0) {
+            currentSearchCaret = searchCarets.size() - 1;
+        }
+        updateCaret();
+    }
+
+    void search(String searchText) {
+        if(searchText.trim().equals("")) {
+            return;
+        }
+
+        System.out.println("searching for: " + searchText);
+
+        applyStyles();
+
+        richTextArea.setLineHighlighterFill(customPaint);
+        richTextArea.setLineHighlighterOn(true);
+
+        String content = richTextArea.getText();
+        int lastIndex = 0;
+
+        searchCarets.clear();
+
+        // efficient case-insensitive search
+        while (lastIndex <= content.length() - searchText.length()) {
+            if (content.regionMatches(true, lastIndex, searchText, 0, searchText.length())) {
+                int end = lastIndex + searchText.length();
+                richTextArea.setStyle(lastIndex, end, "-fx-stroke: white; -rtfx-background-color: red;");
+                lastIndex = end;
+
+                searchCarets.add(lastIndex);
+            } else {
+                lastIndex++;
+            }
+        }
+
+        if(!searchCarets.isEmpty()) {
+            currentSearchCaret = searchCarets.size() - 1;
+            updateCaret();
+        }
     }
 }
