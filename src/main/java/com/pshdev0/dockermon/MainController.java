@@ -133,7 +133,12 @@ public class MainController {
                     if(secondContainer != null && item == secondContainer) {
                         labelName += "\uD83D\uDD0D ";
                     }
-                    labelName += item.getName();
+                    if(item.getName().startsWith("docker-chs-development-")) {
+                        labelName += item.getName().substring(23);
+                    }
+                    else {
+                        labelName += item.getName();
+                    }
 
                     Label label = new Label(labelName);
                     if(!item.active) {

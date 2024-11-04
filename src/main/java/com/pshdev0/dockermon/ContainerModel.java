@@ -174,7 +174,7 @@ public class ContainerModel {
     }
 
     void search(String searchText) {
-        if(searchText.trim().equals("")) {
+        if(searchText.trim().isEmpty()) {
             return;
         }
 
