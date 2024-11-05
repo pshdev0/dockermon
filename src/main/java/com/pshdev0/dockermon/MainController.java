@@ -295,15 +295,35 @@ public class MainController {
             tableContainers.refresh();
         });
 
-        searchTextField.setOnAction(event -> firstContainer.search(searchTextField.getText()));
+        searchTextField.setOnAction(event -> {
+            firstContainer.search(searchTextField.getText());
+            if(secondContainer != null) {
+                secondContainer.search(searchTextField.getText());
+            }
+        });
 
         clearSearchTextButton.setOnAction(event -> {
             searchTextField.setText("");
             firstContainer.applyStyles();
             firstContainer.richTextArea.setLineHighlighterOn(false);
+
+            if(secondContainer != null) {
+                secondContainer.applyStyles();
+                secondContainer.richTextArea.setLineHighlighterOn(false);
+            }
         });
 
-        prevSearch.setOnAction(event -> firstContainer.moveCaretUp());
-        nextSearch.setOnAction(event -> firstContainer.moveCaretDown());
+        prevSearch.setOnAction(event -> {
+            firstContainer.moveCaretUp();
+            if(secondContainer != null) {
+                secondContainer.moveCaretUp();
+            }
+        });
+        nextSearch.setOnAction(event -> {
+            firstContainer.moveCaretDown();
+            if(secondContainer != null) {
+                secondContainer.moveCaretDown();
+            }
+        });
     }
 }

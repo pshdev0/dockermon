@@ -1,15 +1,10 @@
 package com.pshdev0.dockermon.utils;
 
 import javafx.application.Platform;
-import org.fxmisc.richtext.InlineCssTextArea;
 
 import java.io.IOException;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class Helper {
-
-    private static final Pattern ANSI_PATTERN = Pattern.compile("\u001B\\[(\\d+)?m");
 
     public static String getStyleFromAnsiCode(String ansiCode) {
 
@@ -45,40 +40,5 @@ public class Helper {
                 Platform.runLater(() -> System.out.println("Error reloading: " + e.getMessage()));
             }
         }).start();
-    }
-
-    public static void parseAnsiCodesAndApplyStyles(String line, InlineCssTextArea area) {
-        Matcher matcher = ANSI_PATTERN.matcher(line);
-        int lastIndex = 0;
-        String currentStyle = "-fx-fill: white;";
-
-        var scrollY = area.getEstimatedScrollY();
-        var maxScrollY = area.getTotalHeightEstimate() - area.getHeight();
-
-        while (matcher.find()) {
-            String ansiCode = matcher.group(1);
-
-            if (matcher.start() > lastIndex) {
-                area.appendText(line.substring(lastIndex, matcher.start()));
-                if (!currentStyle.isEmpty()) {
-                    area.setStyle(area.getLength() - (matcher.start() - lastIndex), area.getLength(), currentStyle);
-                }
-            }
-
-            currentStyle = Helper.getStyleFromAnsiCode(ansiCode);
-            lastIndex = matcher.end();
-        }
-
-        if (lastIndex < line.length()) {
-            area.appendText(line.substring(lastIndex));
-            if (!currentStyle.isEmpty()) {
-                area.setStyle(area.getLength() - (line.length() - lastIndex), area.getLength(), currentStyle);
-            }
-        }
-
-        // if the scroll bar is at the bottom, scroll to the end to view the new material
-        if(scrollY >= maxScrollY - 10) {
-            area.requestFollowCaret();
-        }
     }
 }

@@ -16,6 +16,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.pshdev0.dockermon.utils.Helper;
 import org.fxmisc.richtext.model.TwoDimensional;
@@ -38,6 +40,7 @@ public class ContainerModel {
             new Stop(0, Color.GREEN),
             new Stop(1, Color.BLACK)
     );
+    public static final Pattern ANSI_PATTERN = Pattern.compile("\u001B\\[(\\d+)?m");
 
     public ContainerModel(String id, String name) {
         this.id = id;
@@ -142,19 +145,58 @@ public class ContainerModel {
         String remainingLogs = logBuffer.toString();
         Platform.runLater(() -> {
             int textLength = richTextArea.getLength();
-            Helper.parseAnsiCodesAndApplyStyles(remainingLogs, richTextArea);
+            parseAnsiCodesAndApplyStyles(remainingLogs);
             var newStyles = richTextArea.getStyleSpans(textLength, richTextArea.getLength());
             newStyles.forEach(originalStyles::add);
         });
         logBuffer.setLength(0);
     }
 
+    public void parseAnsiCodesAndApplyStyles(String line) {
+        Matcher matcher = ANSI_PATTERN.matcher(line);
+        int lastIndex = 0;
+        String currentStyle = "-fx-fill: white;";
+
+        var scrollY = richTextArea.getEstimatedScrollY();
+        var maxScrollY = richTextArea.getTotalHeightEstimate() - richTextArea.getHeight();
+
+        while (matcher.find()) {
+            String ansiCode = matcher.group(1);
+
+            if (matcher.start() > lastIndex) {
+                richTextArea.appendText(line.substring(lastIndex, matcher.start()));
+                if (!currentStyle.isEmpty()) {
+                    richTextArea.setStyle(richTextArea.getLength() - (matcher.start() - lastIndex), richTextArea.getLength(), currentStyle);
+                }
+            }
+
+            currentStyle = Helper.getStyleFromAnsiCode(ansiCode);
+            lastIndex = matcher.end();
+        }
+
+        if (lastIndex < line.length()) {
+            richTextArea.appendText(line.substring(lastIndex));
+            if (!currentStyle.isEmpty()) {
+                richTextArea.setStyle(richTextArea.getLength() - (line.length() - lastIndex), richTextArea.getLength(), currentStyle);
+            }
+        }
+
+        // if the scroll bar is at the bottom, scroll to the end to view the new material
+        if(scrollY >= maxScrollY - 10) {
+            richTextArea.requestFollowCaret();
+        }
+    }
+
     private void updateCaret() {
+        if(searchCarets.isEmpty()) {
+            return;
+        }
+
         int caret = searchCarets.get(currentSearchCaret);
         int currentParagraph = richTextArea.offsetToPosition(caret, TwoDimensional.Bias.Forward).getMajor();
 
         richTextArea.displaceCaret(caret);
-        richTextArea.showParagraphAtCenter(currentParagraph);
+        richTextArea.showParagraphAtTop(currentParagraph);
     }
 
     void moveCaretDown() {
