@@ -59,6 +59,12 @@ public class ContainerModel {
         this.searchCarets = new ArrayList<>();
         this.originalStyles = new ArrayList<>();
         this.richTextArea.getStyleSpans(0, this.richTextArea.getLength()).forEach(this.originalStyles::add);
+
+        this.richTextArea.caretPositionProperty().addListener((obs, oldPos, newPos) -> {
+            if(newPos == richTextArea.getLength()) {
+                updateCaret();
+            }
+        });
     }
 
     public String getCellName() {
@@ -196,7 +202,7 @@ public class ContainerModel {
         int currentParagraph = richTextArea.offsetToPosition(caret, TwoDimensional.Bias.Forward).getMajor();
 
         richTextArea.displaceCaret(caret);
-        richTextArea.showParagraphAtTop(currentParagraph);
+        richTextArea.showParagraphAtCenter(currentParagraph);
     }
 
     void moveCaretDown() {
