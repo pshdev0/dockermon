@@ -13,6 +13,7 @@
 * Click "Split" button to split the view vertically. You can CTRL + Left Click another container to view that second container.
 * Use the search function to highlight matched logs in the primary container view.
 # TODO
+* Switch to using `docker events --filter 'event=create' --filter 'event=destroy' --format '{{.Status}} {{.ID}} {{.Actor.Attributes.name}}'` instead of scanning `docker ps` periodically.
 * When reloading a container, monitor the whatever-service-builder-N to check for failure, since this can cause problems with UI busy spinner if it fails.
 * Maybe add Dockermon refresh button to force a logs flush?
 # Troubleshooting
