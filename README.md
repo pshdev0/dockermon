@@ -13,6 +13,7 @@
 * Click "Split" button to split the view vertically. You can CTRL + Left Click another container to view that second container.
 * Use the search function to highlight matched logs in the primary container view.
 # TODO
+* When reloading a container, monitor the whatever-service-builder-N to check for failure, since this can cause problems with UI busy spinner if it fails.
 * Maybe add Dockermon refresh button to force a logs flush?
 # Troubleshooting
 * If after running you see no containers in the list, try deleting the `org.fxmisc.richtext` repo in you hidden `~/.m2` folder (and other related dependencies if that doesn't work)
