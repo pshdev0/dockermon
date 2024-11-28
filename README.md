@@ -16,6 +16,7 @@
 * Switch to using `docker events --filter 'event=create' --filter 'event=destroy' --format '{{.Status}} {{.ID}} {{.Actor.Attributes.name}}'` instead of scanning `docker ps` periodically.
 * For the VPN monitor, use `aws configure export-credentials --format env` and resulting `AWS_CREDENTIAL_EXPIRATION`
 * When reloading a container, monitor the whatever-service-builder-N to check for failure, since this can cause problems with UI busy spinner if it fails.
+* Fix clear log / search bug (clearing then searching shows up older results)
 * Maybe add Dockermon refresh button to force a logs flush?
 # Troubleshooting
 * If after running you see no containers in the list, try deleting the `org.fxmisc.richtext` repo in you hidden `~/.m2` folder (and other related dependencies if that doesn't work)
