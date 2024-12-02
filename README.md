@@ -13,7 +13,7 @@
 * Click "Split" button to split the view vertically. You can CTRL + Left Click another container to view that second container.
 * Use the search function to highlight matched logs in the primary container view.
 # TODO
-* Switch to using `docker events --filter 'event=create' --filter 'event=destroy' --format '{{.Status}} {{.ID}} {{.Actor.Attributes.name}}'` instead of scanning `docker ps` periodically.
+* Investigate switching to using `docker events --filter 'event=create' --filter 'event=destroy' --format '{{.Status}} {{.ID}} {{.Actor.Attributes.name}}'` instead of scanning `docker ps` periodically (see experimental branch)
 * For the VPN monitor, use `aws configure export-credentials --format env` and resulting `AWS_CREDENTIAL_EXPIRATION`
 * When reloading a container, monitor the whatever-service-builder-N to check for failure, since this can cause problems with UI busy spinner if it fails.
 * Fix clear log / search bug (clearing then searching shows up older results)
