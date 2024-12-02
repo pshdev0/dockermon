@@ -103,7 +103,7 @@ public class ContainerModel {
         this.richTextArea.setStyleSpans(0, spansBuilder.create());
     }
 
-    void createLogProcessForContainer() {
+    public void createLogProcessForContainer() {
         System.out.println("creating process for: " + getName() + " " + getId());
 
         var pb = new ProcessBuilder("docker", "logs", "-f", getId());
@@ -137,6 +137,7 @@ public class ContainerModel {
                 }
             });
 
+            thread.setDaemon(true);
             thread.start();
         } catch (IOException e) {
             System.out.println("! Error creating log process");

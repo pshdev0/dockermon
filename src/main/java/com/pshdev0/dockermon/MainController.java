@@ -1,11 +1,13 @@
 package com.pshdev0.dockermon;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pshdev0.dockermon.utils.DockerUtils;
 import com.pshdev0.dockermon.utils.VpnUtils;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -24,7 +26,11 @@ import javafx.scene.layout.VBox;
 import javafx.scene.shape.Circle;
 import javafx.scene.text.Font;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -69,6 +75,8 @@ public class MainController {
 
     ScheduledExecutorService executor;
     ObservableList<ContainerModel> containerList;
+
+    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     @FXML
     public void initialize() {
@@ -171,52 +179,54 @@ public class MainController {
             }
         });
 
-        executor.scheduleAtFixedRate(() -> {
-            var list = DockerUtils.get().getDockerProcesses();
+        DockerUtils.get().startListeningToDockerEvents(containerList, tableContainers);
 
-            Platform.runLater(() -> {
-                var updated = false;
-
-                // disable old containers & set up for garbage collection
-                for (var container : containerList) {
-
-                    var noneMatch = list.stream().noneMatch(x -> x.getId().equals(container.getId()));
-                    container.setActive(!noneMatch);
-
-                    if(noneMatch && container.logProcess != null) {
-                        if (container.logProcess.isAlive()) {
-                            System.out.println("Deleting container logs process for: " + container.getName() + " " + container.getId());
-                            container.logProcess.destroyForcibly();
-                        }
-                        container.logProcess = null;
-                    }
-
-                    if(noneMatch) {
-                        updated = true;
-                    }
-                }
-
-                // add any new containers
-                for (var container : list) {
-                    boolean onList = containerList.stream().anyMatch(x -> x.getId().equals(container.getId()));
-
-                    if (!onList) {
-                        containerList.add(container);
-                        container.createLogProcessForContainer();
-                        updated = true;
-                    }
-                }
-
-                // update ui as necessary
-                if (updated) {
-                    containerList.sort(Comparator
-                            .comparing(ContainerModel::isActive, Comparator.reverseOrder())
-                            .thenComparing(ContainerModel::getName));
-                }
-
-                tableContainers.refresh();
-            });
-        }, 0, 1000, TimeUnit.MILLISECONDS);
+//        executor.scheduleAtFixedRate(() -> {
+//            var list = DockerUtils.get().getDockerProcesses();
+//
+//            Platform.runLater(() -> {
+//                var updated = false;
+//
+//                // disable old containers & set up for garbage collection
+//                for (var container : containerList) {
+//
+//                    var noneMatch = list.stream().noneMatch(x -> x.getId().equals(container.getId()));
+//                    container.setActive(!noneMatch);
+//
+//                    if(noneMatch && container.logProcess != null) {
+//                        if (container.logProcess.isAlive()) {
+//                            System.out.println("Deleting container logs process for: " + container.getName() + " " + container.getId());
+//                            container.logProcess.destroyForcibly();
+//                        }
+//                        container.logProcess = null;
+//                    }
+//
+//                    if(noneMatch) {
+//                        updated = true;
+//                    }
+//                }
+//
+//                // add any new containers
+//                for (var container : list) {
+//                    boolean onList = containerList.stream().anyMatch(x -> x.getId().equals(container.getId()));
+//
+//                    if (!onList) {
+//                        containerList.add(container);
+//                        container.createLogProcessForContainer();
+//                        updated = true;
+//                    }
+//                }
+//
+//                // update ui as necessary
+//                if (updated) {
+//                    containerList.sort(Comparator
+//                            .comparing(ContainerModel::isActive, Comparator.reverseOrder())
+//                            .thenComparing(ContainerModel::getName));
+//                }
+//
+//                tableContainers.refresh();
+//            });
+//        }, 0, 1000, TimeUnit.MILLISECONDS);
 
 //        executor.scheduleAtFixedRate(() -> {
 //            AWSUtils.scanProfiles();

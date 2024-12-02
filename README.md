@@ -20,3 +20,37 @@
 * Maybe add Dockermon refresh button to force a logs flush?
 # Troubleshooting
 * If after running you see no containers in the list, try deleting the `org.fxmisc.richtext` repo in you hidden `~/.m2` folder (and other related dependencies if that doesn't work)
+
+# Adding `docker` Group Access
+Dockermon monitors Docker events a Unix Domain Socket located here `/var/run/docker.sock`.
+
+Make sure `Advanced / Allow the default Docker socket to be used` is enabled in Docker Desktop Settings.
+
+## On Mac
+Check the file permissions on `/var/run/docker.sock`:
+```bash
+ls -l /var/run/docker.sock
+```
+I see `root daemon` so you need to belong to the `daemon` group to use the Unix Socket.  Check if you're in the `daemon` group by running:
+```bash
+groups
+```
+or check if the `daemon` group exists:
+```bash
+dscl . -list /Groups | grep daemon
+```
+If the `daemon` group does not exist then you'll need to create it:
+```bash
+sudo dseditgroup -o create daemon
+```
+And then add yourself to the group:
+```bash
+sudo dseditgroup -o edit -a $(whoami) -t user daemon
+```
+Log out and log back in for the group to be applied.
+
+## On Linux - TODO
+TODO - Instead of logging out/in at the end, just run `newgrp daemon`.
+
+## On Windows - TODO
+TODO
