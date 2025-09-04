@@ -1,3 +1,5 @@
+# About
+* A JavaFX desktop application to monitor and manage Docker images in real-time.
 # How to Run
 * In a terminal run `docker_chs up`, or alternatively in the `docker-chs-development` repo root, run `chs-dev up`.
 * In a separate terminal, navigate to the `dockermon` repo root directory, and run `mvn javafx:run`.
